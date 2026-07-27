@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" data-theme="system">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>منتا 3.3 | دستیار هوشمند</title>
+<style>
+:root {
+    --bg-primary: #ffffff; --bg-secondary: #f8fafc; --bg-tertiary: #f1f5f9;
+    --bg-glass: rgba(255, 255, 255, 0.85); --text-primary: #0f172a; --text-secondary: #475569;
+    --text-muted: #94a3b8; --accent: #6366f1; --accent-hover: #4f46e5; --accent-light: #e0e7ff;
+    --border: #e2e8f0; --danger: #ef4444; --success: #10b981; --warning: #f59e0b;
+    --radius-sm: 8px; --radius-md: 12px; --radius-lg: 16px; --radius-xl: 24px;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05); --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1); --font-size-base: 16px; --chat-width: 800px;
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+[data-theme="dark"] {
+    --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-tertiary: #334155;
+    --bg-glass: rgba(30, 41, 59, 0.85); --text-primary: #f8fafc; --text-secondary: #cbd5e1;
+    --text-muted: #64748b; --accent: #818cf8; --accent-hover: #6366f1; --accent-light: #1e1b4b; --border: #334155;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: var(--bg-secondary); color: var(--text-primary); font-size: var(--font-size-base); line-height: 1.6; height: 100vh; overflow: hidden; transition: var(--transition); }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, textarea, select { font-family: inherit; }
+.hidden { display: none !important; }
+.flex { display: flex; } .items-center { align-items: center; } .justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; } .gap-3 { gap: 0.75rem; } .w-full { width: 100%; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes ripple { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(1.5); opacity: 0; } }
+.animate-fade { animation: fadeIn 0.3s ease-out forwards; }
+
+.auth-wrapper { position: fixed; inset: 0; z-index: 50; background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); display: flex; align-items: center; justify-content: center; padding: 20px; }
+.auth-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-lg); width: 100%; max-width: 420px; padding: 2rem; animation: fadeIn 0.5s ease-out; }
+.auth-header { text-align: center; margin-bottom: 1.5rem; }
+.auth-header h1 { font-size: 1.75rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
+.auth-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+.auth-tab { flex: 1; padding: 0.75rem; text-align: center; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); }
+.auth-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.form-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-primary); color: var(--text-primary); font-size: 0.95rem; transition: var(--transition); }
+.form-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.captcha-box { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; text-align: center; margin-bottom: 1rem; }
+.captcha-q { font-size: 1.25rem; font-weight: 700; color: var(--accent); letter-spacing: 2px; margin-bottom: 0.5rem; }
+.btn-primary { width: 100%; padding: 0.875rem; background: var(--accent); color: white; font-weight: 600; border-radius: var(--radius-md); transition: var(--transition); font-size: 1rem; }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.auth-error { background: #fef2f2; color: var(--danger); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.875rem; text-align: center; margin-bottom: 1rem; border: 1px solid #fecaca; }
+[data-theme="dark"] .auth-error { background: #450a0a; border-color: #7f1d1d; }
+
+.app-container { display: flex; height: 100vh; width: 100vw; overflow: hidden; }
+.sidebar { width: 280px; background: var(--bg-primary); border-left: 1px solid var(--border); display: flex; flex-direction: column; transition: var(--transition); z-index: 40; }
+.sidebar-header { padding: 1.25rem; border-bottom: 1px solid var(--border); }
+.sidebar-user { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+.user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--accent-light); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; }
+.user-info h3 { font-size: 0.95rem; font-weight: 600; }
+.user-info p { font-size: 0.75rem; color: var(--text-muted); }
+.btn-new-chat { width: 100%; padding: 0.75rem; background: var(--accent); color: white; border-radius: var(--radius-md); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: var(--transition); }
+.btn-new-chat:hover { background: var(--accent-hover); }
+.chat-list-container { flex: 1; overflow-y: auto; padding: 0.75rem; }
+.chat-search { width: 100%; padding: 0.6rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem; margin-bottom: 0.75rem; }
+.chat-item { padding: 0.75rem; border-radius: var(--radius-md); cursor: pointer; transition: var(--transition); display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; border: 1px solid transparent; }
+.chat-item:hover { background: var(--bg-secondary); }
+.chat-item.active { background: var(--accent-light); border-color: var(--accent); }
+.chat-item-icon { color: var(--text-muted); flex-shrink: 0; }
+.chat-item-content { flex: 1; min-width: 0; }
+.chat-item-title { font-size: 0.875rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chat-item-date { font-size: 0.75rem; color: var(--text-muted); }
+.chat-item-actions { display: flex; gap: 0.25rem; opacity: 0; transition: var(--transition); }
+.chat-item:hover .chat-item-actions { opacity: 1; }
+.icon-btn { padding: 0.35rem; border-radius: var(--radius-sm); color: var(--text-muted); transition: var(--transition); display: flex; align-items: center; justify-content: center; }
+.icon-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.icon-btn.danger:hover { background: #fef2f2; color: var(--danger); }
+.sidebar-footer { padding: 1rem; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.5rem; }
+.sidebar-btn { width: 100%; padding: 0.6rem; border-radius: var(--radius-md); text-align: right; display: flex; align-items: center; gap: 0.75rem; color: var(--text-secondary); font-size: 0.875rem; transition: var(--transition); }
+.sidebar-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+
+.main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-secondary); position: relative; }
+.main-header { height: 64px; background: var(--bg-glass); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 1.5rem; position: sticky; top: 0; z-index: 30; }
+.header-title { font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; }
+.model-select { padding: 0.5rem 1rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.875rem; cursor: pointer; }
+.main-tabs { display: flex; background: var(--bg-primary); border-bottom: 1px solid var(--border); padding: 0 1.5rem; }
+.main-tab { padding: 1rem 1.5rem; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; transition: var(--transition); display: flex; align-items: center; gap: 0.5rem; }
+.main-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.main-tab:hover { color: var(--text-primary); }
+
+.chat-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.chat-section.hidden { display: none; }
+.chat-area { flex: 1; overflow-y: auto; padding: 2rem; scroll-behavior: smooth; }
+.chat-area::-webkit-scrollbar { width: 6px; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--text-muted); animation: fadeIn 0.5s ease-out; }
+.empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; color: var(--accent); opacity: 0.5; }
+.empty-state h2 { font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+
+.message { display: flex; gap: 1rem; margin-bottom: 1.5rem; animation: fadeIn 0.3s ease-out; max-width: var(--chat-width); margin-left: auto; margin-right: auto; }
+.message.user { flex-direction: row-reverse; }
+.msg-avatar { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+.message.bot .msg-avatar { background: var(--accent-light); color: var(--accent); }
+.message.user .msg-avatar { background: var(--bg-tertiary); color: var(--text-secondary); }
+.msg-content-wrapper { flex: 1; max-width: 85%; }
+.msg-bubble { padding: 1rem 1.25rem; border-radius: var(--radius-lg); font-size: 0.95rem; line-height: 1.7; position: relative; word-wrap: break-word; }
+.message.bot .msg-bubble { background: var(--bg-primary); border: 1px solid var(--border); border-top-right-radius: 4px; }
+.message.user .msg-bubble { background: var(--accent); color: white; border-top-left-radius: 4px; }
+.msg-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; opacity: 0; transition: var(--transition); }
+.message:hover .msg-actions { opacity: 1; }
+.msg-action-btn { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); transition: var(--transition); }
+.msg-action-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+
+.think-block {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    overflow: hidden;
+    transition: var(--transition);
+}
+.think-toggle {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: right;
+    font-family: inherit;
+    transition: var(--transition);
+}
+.think-toggle:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+.think-content {
+    padding: 0 1rem 1rem 1rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    line-height: 1.6;
+    white-space: pre-wrap;
+    border-top: 1px solid var(--border);
+    font-family: 'Consolas', monospace;
+}
+
+.msg-bubble pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: var(--radius-md); overflow-x: auto; margin: 0.75rem 0; position: relative; font-family: 'Consolas', monospace; font-size: 0.85rem; }
+.msg-bubble code { font-family: 'Consolas', monospace; }
+.msg-bubble :not(pre) > code { background: var(--bg-tertiary); color: var(--accent); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
+.copy-code-btn { position: absolute; top: 0.5rem; left: 0.5rem; padding: 0.25rem 0.5rem; background: rgba(255,255,255,0.1); color: white; border-radius: 4px; font-size: 0.75rem; opacity: 0; transition: var(--transition); }
+.msg-bubble pre:hover .copy-code-btn { opacity: 1; }
+
+.typing-indicator { display: flex; gap: 4px; padding: 0.5rem 0; }
+.typing-indicator span { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; animation: typing 1.4s infinite ease-in-out both; }
+
+.input-area { padding: 1.5rem; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+.input-container { max-width: var(--chat-width); margin: 0 auto; position: relative; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-xl); box-shadow: var(--shadow-md); transition: var(--transition); }
+.input-container:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+.chat-textarea { width: 100%; padding: 1rem 3.5rem 1rem 1rem; background: transparent; border: none; color: var(--text-primary); font-size: 0.95rem; resize: none; max-height: 200px; line-height: 1.5; }
+.input-actions { position: absolute; bottom: 0.75rem; left: 0.75rem; display: flex; gap: 0.5rem; }
+.input-btn { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); transition: var(--transition); position: relative; }
+.input-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.input-btn.send { background: var(--accent); color: white; }
+.input-btn.send:hover { background: var(--accent-hover); }
+.input-btn.stop { background: var(--danger); color: white; }
+.input-btn.recording { background: var(--danger); color: white; animation: ripple 1.5s infinite; }
+
+.audio-tools-section { flex: 1; overflow-y: auto; padding: 2rem; background: var(--bg-secondary); }
+.audio-tools-section.hidden { display: none; }
+.tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; max-width: var(--chat-width); margin: 0 auto; }
+.tool-card { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm); transition: var(--transition); }
+.tool-card:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
+.tool-card h3 { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+.tool-card p { font-size: 0.875rem; color: var(--text-muted); margin-bottom: 1rem; }
+.tool-textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg-secondary); color: var(--text-primary); font-size: 0.9rem; resize: vertical; margin-bottom: 1rem; }
+.tool-textarea:focus { border-color: var(--accent); }
+.tool-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.btn-tool { padding: 0.6rem 1.2rem; border-radius: var(--radius-md); font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem; transition: var(--transition); }
+.btn-tool.primary { background: var(--accent); color: white; }
+.btn-tool.primary:hover { background: var(--accent-hover); }
+.btn-tool.secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+.audio-result { margin-top: 1rem; padding: 1rem; background: var(--bg-secondary); border-radius: var(--radius-md); border: 1px solid var(--border); display: none; }
+.audio-result.active { display: block; animation: fadeIn 0.3s ease-out; }
+.audio-result audio { width: 100%; margin-top: 0.5rem; }
+
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: var(--transition); }
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal { background: var(--bg-primary); border-radius: var(--radius-xl); width: 90%; max-width: 700px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); transform: scale(0.95); transition: var(--transition); }
+.modal-overlay.active .modal { transform: scale(1); }
+.modal-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-size: 1.25rem; font-weight: 700; }
+.modal-body { flex: 1; overflow-y: auto; padding: 1.5rem; }
+.modal-footer { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem; }
+.settings-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.5rem; }
+.settings-tab { padding: 0.5rem 1rem; border-radius: var(--radius-md); font-size: 0.875rem; font-weight: 600; color: var(--text-muted); white-space: nowrap; transition: var(--transition); }
+.settings-tab.active { background: var(--accent-light); color: var(--accent); }
+.settings-section { display: none; animation: fadeIn 0.3s ease-out; }
+.settings-section.active { display: block; }
+.setting-item { margin-bottom: 1.25rem; }
+.setting-item label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+.setting-desc { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+.toggle-switch { position: relative; width: 44px; height: 24px; background: var(--bg-tertiary); border-radius: 12px; cursor: pointer; transition: var(--transition); }
+.toggle-switch.active { background: var(--accent); }
+.toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: var(--transition); }
+.toggle-switch.active::after { transform: translateX(20px); }
+.select-input { width: 100%; padding: 0.6rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text-primary); font-size: 0.9rem; }
+
+.memory-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: 0.5rem; border: 1px solid var(--border); transition: var(--transition); }
+.memory-item:hover { border-color: var(--accent); }
+.memory-item.pinned { border-color: var(--warning); background: rgba(245, 158, 11, 0.05); }
+.memory-text { flex: 1; font-size: 0.9rem; word-break: break-word; }
+
+.toast-container { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 0.5rem; pointer-events: none; }
+.toast { padding: 0.75rem 1.25rem; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: var(--shadow-lg); font-size: 0.9rem; display: flex; align-items: center; gap: 0.75rem; animation: fadeIn 0.3s ease-out; min-width: 300px; pointer-events: auto; }
+.toast.success { border-right: 4px solid var(--success); }
+.toast.error { border-right: 4px solid var(--danger); }
+.toast.info { border-right: 4px solid var(--accent); }
+
+@media (max-width: 768px) {
+    .sidebar { position: fixed; right: 0; top: 0; height: 100%; transform: translateX(100%); box-shadow: var(--shadow-lg); }
+    .sidebar.open { transform: translateX(0); }
+    .mobile-menu-btn { display: flex !important; }
+    .msg-content-wrapper { max-width: 90%; }
+    .modal { width: 95%; max-height: 90vh; }
+    .tools-grid { grid-template-columns: 1fr; }
+}
+.mobile-menu-btn { display: none; }
+</style>
+</head>
+<body>
+
+<div class="auth-wrapper" id="authWrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>🤖 منتا 3.3</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">دستیار هوشمند با مدل Qwen 3.6</p>
+        </div>
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="App.auth.switchTab('login')">ورود</button>
+            <button class="auth-tab" onclick="App.auth.switchTab('register')">ثبت‌نام</button>
+        </div>
+        <div class="auth-error hidden" id="authError"></div>
+        <form id="loginForm" class="auth-form" onsubmit="event.preventDefault(); App.auth.login();">
+            <div class="form-group"><label>نام کاربری</label><input type="text" class="form-input" id="loginUsername" required></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" class="form-input" id="loginPassword" required></div>
+            <div class="captcha-box">
+                <div class="captcha-q" id="loginCaptchaQ"></div>
+                <input type="number" class="form-input" id="loginCaptchaA" placeholder="پاسخ ریاضی" required style="text-align: center; font-size: 1.1rem; max-width: 200px; margin: 0 auto;">
+                <button type="button" class="icon-btn" onclick="App.auth.generateCaptcha('login')" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent);">تغییر سوال</button>
+            </div>
+            <button type="submit" class="btn-primary">ورود به حساب</button>
+        </form>
+        <form id="registerForm" class="auth-form hidden" onsubmit="event.preventDefault(); App.auth.register();">
+            <div class="form-group"><label>نام و نام خانوادگی</label><input type="text" class="form-input" id="regFullName" required></div>
+            <div class="form-group"><label>نام کاربری</label><input type="text" class="form-input" id="regUsername" required></div>
+            <div class="form-group"><label>رمز عبور</label><input type="password" class="form-input" id="regPassword" required minlength="4"></div>
+            <div class="captcha-box">
+                <div class="captcha-q" id="regCaptchaQ"></div>
+                <input type="number" class="form-input" id="regCaptchaA" placeholder="پاسخ ریاضی" required style="text-align: center; font-size: 1.1rem; max-width: 200px; margin: 0 auto;">
+                <button type="button" class="icon-btn" onclick="App.auth.generateCaptcha('reg')" style="margin-top: 0.5rem; font-size: 0.8rem; color: var(--accent);">تغییر سوال</button>
+            </div>
+            <button type="submit" class="btn-primary">ساخت حساب کاربری</button>
+        </form>
+    </div>
+</div>
+
+<div class="app-container hidden" id="appContainer">
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-user">
+                <div class="user-avatar" id="userAvatar">U</div>
+                <div class="user-info">
+                    <h3 id="userNameDisplay">User</h3>
+                    <p>حساب فعال</p>
+                </div>
+            </div>
+            <button class="btn-new-chat" onclick="App.chat.newChat()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
+                چت جدید
+            </button>
+        </div>
+        <div class="chat-list-container">
+            <input type="text" class="chat-search" placeholder="جستجو در تاریخچه..." oninput="App.chat.search(this.value)">
+            <div id="chatList"></div>
+        </div>
+        <div class="sidebar-footer">
+            <button class="sidebar-btn" onclick="App.ui.openModal('settingsModal')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                تنظیمات
+            </button>
+            <button class="sidebar-btn" onclick="App.ui.openModal('memoryModal')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                حافظه هوشمند
+            </button>
+            <button class="sidebar-btn" onclick="App.auth.logout()" style="color: var(--danger);">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                خروج
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="main-header">
+            <div class="flex items-center gap-3">
+                <button class="icon-btn mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                <div class="header-title">
+                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--accent);"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    <span id="headerAssistantName">منتا 3.3</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <select class="model-select" id="modelSelect">
+                    <option value="qwen/qwen3.6-27b">Qwen 3.6 27B (پیشرفته)</option>
+                    <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+                    <option value="openai/gpt-oss-120b">GPT-OSS 120B</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="main-tabs">
+            <div class="main-tab active" onclick="App.ui.switchMainTab('chat')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+                چت هوشمند
+            </div>
+            <div class="main-tab" onclick="App.ui.switchMainTab('audio')">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                ابزارهای صوتی
+            </div>
+        </div>
+
+        <div class="chat-section" id="chatSection">
+            <div class="chat-area" id="chatArea">
+                <div class="empty-state" id="emptyState">
+                    <svg fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <h2>به منتا 3.3 خوش آمدید</h2>
+                    <p>پیام خود را بنویسید یا فایل صوتی آپلود کنید.</p>
+                </div>
+                <div id="messagesContainer" class="hidden"></div>
+            </div>
+            <div class="input-area">
+                <div class="input-container">
+                    <textarea class="chat-textarea" id="userInput" placeholder="پیام خود را بنویسید..." rows="1" oninput="App.ui.autoResize(this)" onkeydown="App.chat.handleKeydown(event)"></textarea>
+                    <div class="input-actions">
+                        <input type="file" id="audioFile" accept="audio/*" class="hidden" onchange="App.chat.handleAudioUpload(event)">
+                        <button class="input-btn" onclick="document.getElementById('audioFile').click()" title="آپلود فایل صوتی">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                        </button>
+                        <button class="input-btn" id="micBtn" onclick="App.audio.toggleDictation()" title="ضبط صدا">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                        </button>
+                        <button class="input-btn stop hidden" id="stopBtn" onclick="App.chat.stopGeneration()" title="توقف">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+                        </button>
+                        <button class="input-btn send" id="sendBtn" onclick="App.chat.sendMessage()" title="ارسال">
+                            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="audio-tools-section hidden" id="audioSection">
+            <div class="tools-grid">
+                <div class="tool-card">
+                    <h3>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--accent);"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
+                        تبدیل صدا به متن (STT)
+                    </h3>
+                    <p>فایل صوتی خود را آپلود کنید تا به متن فارسی تبدیل شود.</p>
+                    <input type="file" id="sttFileInput" accept="audio/*" class="hidden" onchange="App.audio.processSTTFile(event)">
+                    <button class="btn-tool primary w-full" onclick="document.getElementById('sttFileInput').click()" style="justify-content: center; margin-bottom: 1rem;">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                        انتخاب فایل صوتی
+                    </button>
+                    <div class="audio-result" id="sttResult">
+                        <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem;">متن استخراج شده:</div>
+                        <div id="sttText" style="font-size: 0.95rem; color: var(--text-primary); line-height: 1.6; white-space: pre-wrap;"></div>
+                        <button class="btn-tool secondary" style="margin-top: 0.75rem; width: 100%; justify-content: center;" onclick="App.audio.copySTT()">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                            کپی متن
+                        </button>
+                    </div>
+                </div>
+                <div class="tool-card">
+                    <h3>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color: var(--success);"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                        تبدیل متن به صدا (TTS)
+                    </h3>
+                    <p>متن خود را وارد کنید تا توسط هوش مصنوعی خوانده شود.</p>
+                    <textarea class="tool-textarea" id="ttsTextInput" placeholder="متن خود را اینجا بنویسید..."></textarea>
+                    <div class="tool-actions">
+                        <button class="btn-tool primary" id="ttsGenerateBtn" onclick="App.audio.generateTTS()">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            تولید صدا
+                        </button>
+                        <button class="btn-tool secondary hidden" id="ttsDownloadBtn" onclick="App.audio.downloadTTS()">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            دانلود
+                        </button>
+                    </div>
+                    <div class="audio-result" id="ttsResult">
+                        <audio id="ttsAudioPlayer" controls style="width: 100%;"></audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+        <div class="modal-header"><h2>تنظیمات</h2><button class="icon-btn" onclick="App.ui.closeModal('settingsModal')"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+        <div class="modal-body">
+            <div class="settings-tabs">
+                <button class="settings-tab active" onclick="App.settings.switchTab('profile')">پروفایل</button>
+                <button class="settings-tab" onclick="App.settings.switchTab('assistant')">دستیار</button>
+                <button class="settings-tab" onclick="App.settings.switchTab('appearance')">ظاهر</button>
+            </div>
+            <div class="settings-section active" id="tab-profile">
+                <div class="setting-item"><label>نام نمایشی</label><input type="text" class="form-input" id="setUserName" onchange="App.settings.save()"></div>
+                <div class="setting-item"><label>سن</label><input type="number" class="form-input" id="setUserAge" onchange="App.settings.save()"></div>
+            </div>
+            <div class="settings-section" id="tab-assistant">
+                <div class="setting-item"><label>نام دستیار</label><input type="text" class="form-input" id="setAssistantName" value="منتا 3.3" onchange="App.settings.save()"></div>
+                <div class="setting-item"><label>شخصیت</label><select class="select-input" id="setPersonality" onchange="App.settings.save()"><option value="Friendly">دوستانه</option><option value="Professional" selected>حرفه‌ای</option><option value="Funny">شوخ‌طبع</option><option value="Programmer">برنامه‌نویس</option></select></div>
+                <div class="setting-item flex items-center justify-between"><div><label style="margin:0">فعال‌سازی حافظه هوشمند</label><div class="setting-desc">دستیار به صورت خودکار اطلاعات شما را یاد می‌گیرد.</div></div><div class="toggle-switch active" id="toggleMemory" onclick="App.settings.toggle('toggleMemory'); App.settings.save()"></div></div>
+            </div>
+            <div class="settings-section" id="tab-appearance">
+                <div class="setting-item"><label>تم</label><select class="select-input" id="setTheme" onchange="App.settings.applyTheme()"><option value="system">سیستم</option><option value="light">روشن</option><option value="dark">تاریک</option></select></div>
+                <div class="setting-item flex items-center justify-between"><label style="margin:0">انیمیشن‌ها</label><div class="toggle-switch active" id="toggleAnimations" onclick="App.settings.toggle('toggleAnimations'); App.settings.save()"></div></div>
+            </div>
+        </div>
+        <div class="modal-footer"><button class="btn-primary" style="width: auto; padding: 0.5rem 1.5rem;" onclick="App.ui.closeModal('settingsModal')">بستن</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="memoryModal">
+    <div class="modal">
+        <div class="modal-header"><h2>حافظه هوشمند بلندمدت</h2><button class="icon-btn" onclick="App.ui.closeModal('memoryModal')"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+        <div class="modal-body">
+            <div class="setting-item"><label>افزودن واقعیت جدید به حافظه</label>
+                <div class="flex gap-2" style="flex-wrap: wrap;">
+                    <select class="select-input" id="newMemCategory" style="width: auto; min-width: 120px;"><option value="Personal">شخصی</option><option value="Hardware">سخت‌افزار</option><option value="Preferences">ترجیحات</option><option value="Programming">برنامه‌نویسی</option><option value="Other">سایر</option></select>
+                    <input type="text" class="form-input" id="newMemKey" placeholder="کلید (مثال: نام)" style="flex: 1; min-width: 120px;">
+                    <input type="text" class="form-input" id="newMemValue" placeholder="مقدار (مثال: علی)" style="flex: 2; min-width: 150px;">
+                    <button class="btn-primary" style="width: auto; padding: 0 1rem;" onclick="App.memory.addManual()">افزودن</button>
+                </div>
+            </div>
+            <div class="setting-item"><label>حافظه‌های ذخیره شده (<span id="memoryCount">0</span>)</label><input type="text" class="form-input" placeholder="جستجو در حافظه..." oninput="App.memory.render(this.value)" style="margin-bottom: 0.75rem;"><div id="memoryList" style="max-height: 300px; overflow-y: auto;"></div></div>
+        </div>
+        <div class="modal-footer"><button class="btn-primary" style="width: auto; padding: 0.5rem 1.5rem; background: var(--bg-tertiary); color: var(--text-primary);" onclick="App.memory.clearAll()">پاک کردن همه</button><button class="btn-primary" style="width: auto; padding: 0.5rem 1.5rem;" onclick="App.ui.closeModal('memoryModal')">بستن</button></div>
+    </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+const WORKER_URL = 'https://groq-proxy.iliamontazer2.workers.dev';
+
+const App = {
+    state: {
+        currentUser: null, currentChatId: null, chats: {}, memories: [],
+        settings: { userName: '', userAge: '', assistantName: 'منتا 3.3', personality: 'Professional', temperature: 0.6, memoryEnabled: true, theme: 'system', animations: true },
+        abortController: null, captcha: { login: {}, reg: {} }, isRecording: false, recognition: null, currentTTSBlob: null
+    },
+
+    init() {
+        console.log("✅ Menta 3.3 (Qwen 3.6) Loaded");
+        this.settings.load();
+        this.settings.applyTheme();
+        const savedUser = localStorage.getItem('menta_currentUser');
+        if (savedUser) { this.state.currentUser = JSON.parse(savedUser); this.loadData(); this.ui.showApp(); }
+        else { this.auth.generateCaptcha('login'); this.auth.generateCaptcha('reg'); }
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.state.recognition = new SR(); this.state.recognition.lang = 'fa-IR'; this.state.recognition.continuous = false; this.state.recognition.interimResults = true;
+            this.state.recognition.onresult = (e) => { let t = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) t += e.results[i][0].transcript; } if (t) { const inp = document.getElementById('userInput'); inp.value = (inp.value ? inp.value + ' ' : '') + t; this.ui.autoResize(inp); } };
+            this.state.recognition.onend = () => { this.state.isRecording = false; document.getElementById('micBtn').classList.remove('recording'); };
+            this.state.recognition.onerror = (e) => { this.state.isRecording = false; document.getElementById('micBtn').classList.remove('recording'); this.ui.toast('خطا: ' + e.error, 'error'); };
+        }
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active')); });
+    },
+
+    auth: {
+        switchTab(tab) { document.querySelectorAll('.auth-tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1))); document.getElementById('loginForm').classList.toggle('hidden', tab !== 'login'); document.getElementById('registerForm').classList.toggle('hidden', tab !== 'register'); document.getElementById('authError').classList.add('hidden'); },
+        generateCaptcha(type) { const a = Math.floor(Math.random()*15)+5, b = Math.floor(Math.random()*10)+2; const ops = [{q:`${a} + ${b} = ?`,a:a+b},{q:`${a} × ${b} = ?`,a:a*b},{q:`${a+b} - ${b} = ?`,a:a}]; const op = ops[Math.floor(Math.random()*ops.length)]; App.state.captcha[type] = op; document.getElementById(type+'CaptchaQ').textContent = op.q; },
+        showError(msg) { const el = document.getElementById('authError'); el.textContent = msg; el.classList.remove('hidden'); },
+        register() { const fn = document.getElementById('regFullName').value.trim(), un = document.getElementById('regUsername').value.trim(), pw = document.getElementById('regPassword').value, ca = parseInt(document.getElementById('regCaptchaA').value); if (!fn||!un||!pw) return this.showError('تمام فیلدها را پر کنید'); if (pw.length < 4) return this.showError('رمز عبور حداقل ۴ کاراکتر'); if (ca !== App.state.captcha.reg.a) { this.showError('پاسخ ریاضی اشتباه است'); this.generateCaptcha('reg'); return; } let users = JSON.parse(localStorage.getItem('menta_users')||'{}'); if (users[un]) return this.showError('نام کاربری تکراری است'); users[un] = {fullName:fn,password:pw,createdAt:Date.now()}; localStorage.setItem('menta_users',JSON.stringify(users)); App.ui.toast('حساب ساخته شد','success'); this.switchTab('login'); document.getElementById('loginUsername').value = un; },
+        login() { const un = document.getElementById('loginUsername').value.trim(), pw = document.getElementById('loginPassword').value, ca = parseInt(document.getElementById('loginCaptchaA').value); if (!un||!pw) return this.showError('نام کاربری و رمز را وارد کنید'); if (ca !== App.state.captcha.login.a) { this.showError('پاسخ ریاضی اشتباه است'); this.generateCaptcha('login'); return; } let users = JSON.parse(localStorage.getItem('menta_users')||'{}'); if (!users[un]||users[un].password!==pw) return this.showError('نام کاربری یا رمز اشتباه'); App.state.currentUser = {username:un,fullName:users[un].fullName}; localStorage.setItem('menta_currentUser',JSON.stringify(App.state.currentUser)); App.loadData(); App.ui.showApp(); },
+        logout() { if (confirm('خروج؟')) { localStorage.removeItem('menta_currentUser'); location.reload(); } }
+    },
+
+    loadData() {
+        const u = App.state.currentUser.username;
+        App.state.chats = JSON.parse(localStorage.getItem(`menta_chats_${u}`)||'{}');
+        let rm = JSON.parse(localStorage.getItem(`menta_memories_${u}`)||'[]');
+        App.state.memories = rm.map(m => { if (!m.category) return {id:m.id||'mem_'+Date.now(),category:'Other',key:'Fact',value:m.text||m.value||'',pinned:m.pinned||false,updatedAt:Date.now()}; return m; });
+        const ss = JSON.parse(localStorage.getItem(`menta_settings_${u}`)||'{}');
+        App.state.settings = {...App.state.settings,...ss};
+        document.getElementById('setUserName').value = App.state.settings.userName||App.state.currentUser.fullName;
+        document.getElementById('setUserAge').value = App.state.settings.userAge||'';
+        document.getElementById('setAssistantName').value = App.state.settings.assistantName;
+        document.getElementById('setPersonality').value = App.state.settings.personality;
+        document.getElementById('setTheme').value = App.state.settings.theme;
+        if (App.state.settings.memoryEnabled) document.getElementById('toggleMemory').classList.add('active'); else document.getElementById('toggleMemory').classList.remove('active');
+        if (App.state.settings.animations) document.getElementById('toggleAnimations').classList.add('active'); else document.getElementById('toggleAnimations').classList.remove('active');
+        document.getElementById('headerAssistantName').textContent = App.state.settings.assistantName;
+    },
+
+    saveData() { const u = App.state.currentUser.username; localStorage.setItem(`menta_chats_${u}`,JSON.stringify(App.state.chats)); localStorage.setItem(`menta_memories_${u}`,JSON.stringify(App.state.memories)); localStorage.setItem(`menta_settings_${u}`,JSON.stringify(App.state.settings)); },
+
+    ui: {
+        showApp() { document.getElementById('authWrapper').classList.add('hidden'); document.getElementById('appContainer').classList.remove('hidden'); document.getElementById('userNameDisplay').textContent = App.state.currentUser.fullName; document.getElementById('userAvatar').textContent = App.state.currentUser.fullName.charAt(0); App.chat.renderList(); const ids = Object.keys(App.state.chats); if (ids.length===0) App.chat.newChat(); else { const last = ids.sort((a,b)=>App.state.chats[b].timestamp-App.state.chats[a].timestamp)[0]; App.chat.loadChat(last); } },
+        switchMainTab(tab) { document.querySelectorAll('.main-tab').forEach((t,i) => t.classList.toggle('active',(tab==='chat'&&i===0)||(tab==='audio'&&i===1))); document.getElementById('chatSection').classList.toggle('hidden',tab!=='chat'); document.getElementById('audioSection').classList.toggle('hidden',tab!=='audio'); if (window.innerWidth<768) document.getElementById('sidebar').classList.remove('open'); },
+        openModal(id) { document.getElementById(id).classList.add('active'); if (id==='memoryModal') App.memory.render(); },
+        closeModal(id) { document.getElementById(id).classList.remove('active'); },
+        toast(msg,type='info') { const c = document.getElementById('toastContainer'); const el = document.createElement('div'); el.className = `toast ${type} animate-fade`; el.innerHTML = `<span>${type==='success'?'✅':type==='error'?'❌':'ℹ️'}</span> ${msg}`; c.appendChild(el); setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},3000); },
+        autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,200)+'px'; },
+        copyToClipboard(text) { navigator.clipboard.writeText(text).then(()=>App.ui.toast('کپی شد','success')); }
+    },
+
+    settings: {
+        load(){},
+        save() { App.state.settings.userName=document.getElementById('setUserName').value; App.state.settings.userAge=document.getElementById('setUserAge').value; App.state.settings.assistantName=document.getElementById('setAssistantName').value; App.state.settings.personality=document.getElementById('setPersonality').value; App.state.settings.theme=document.getElementById('setTheme').value; App.saveData(); document.getElementById('headerAssistantName').textContent=App.state.settings.assistantName; App.ui.toast('تنظیمات ذخیره شد','success'); },
+        toggle(id) { document.getElementById(id).classList.toggle('active'); if(id==='toggleMemory') App.state.settings.memoryEnabled=document.getElementById(id).classList.contains('active'); if(id==='toggleAnimations') App.state.settings.animations=document.getElementById(id).classList.contains('active'); },
+        applyTheme() { const t=App.state.settings.theme; if(t==='system'){const d=window.matchMedia('(prefers-color-scheme:dark)').matches;document.documentElement.setAttribute('data-theme',d?'dark':'light');}else{document.documentElement.setAttribute('data-theme',t);} },
+        switchTab(tab) { document.querySelectorAll('.settings-tab').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.settings-section').forEach(s=>s.classList.remove('active')); event.target.classList.add('active'); document.getElementById('tab-'+tab).classList.add('active'); }
+    },
+
+    memory: {
+        addManual() { const cat=document.getElementById('newMemCategory').value,k=document.getElementById('newMemKey').value.trim(),v=document.getElementById('newMemValue').value.trim(); if(!k||!v) return App.ui.toast('کلید و مقدار را وارد کنید','error'); const idx=App.state.memories.findIndex(m=>m.category===cat&&m.key.toLowerCase()===k.toLowerCase()); const nm={id:idx>=0?App.state.memories[idx].id:'mem_'+Date.now()+Math.random().toString(36).substr(2,5),category:cat,key:k,value:v,pinned:idx>=0?App.state.memories[idx].pinned:false,updatedAt:Date.now()}; if(idx>=0){App.state.memories[idx]=nm;App.ui.toast('به‌روزرسانی شد','success');}else{App.state.memories.push(nm);App.ui.toast('اضافه شد','success');} App.saveData(); document.getElementById('newMemKey').value=''; document.getElementById('newMemValue').value=''; this.render(); },
+        remove(id) { App.state.memories=App.state.memories.filter(m=>m.id!==id); App.saveData(); this.render(); App.ui.toast('حذف شد','info'); },
+        togglePin(id) { const m=App.state.memories.find(x=>x.id===id); if(m){m.pinned=!m.pinned;App.saveData();this.render();} },
+        clearAll() { if(confirm('تمام حافظه پاک شود؟')){App.state.memories=[];App.saveData();this.render();App.ui.toast('پاک شد','info');} },
+        render(search='') { const list=document.getElementById('memoryList'); const ls=search.toLowerCase(); const f=App.state.memories.filter(m=>(m.key&&m.key.toLowerCase().includes(ls))||(m.value&&m.value.toLowerCase().includes(ls))); f.sort((a,b)=>a.pinned!==b.pinned?(b.pinned?1:-1):0); document.getElementById('memoryCount').textContent=App.state.memories.length; list.innerHTML=f.map(m=>`<div class="memory-item ${m.pinned?'pinned':''}"><button class="icon-btn" onclick="App.memory.togglePin('${m.id}')" style="color:${m.pinned?'var(--warning)':'var(--text-muted)'}"><svg width="16" height="16" fill="${m.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></button><div style="flex:1;min-width:0;"><div style="display:flex;gap:0.5rem;align-items:center;margin-bottom:0.25rem;flex-wrap:wrap;"><span style="font-size:0.7rem;background:var(--accent-light);color:var(--accent);padding:0.1rem 0.4rem;border-radius:4px;font-weight:600;">${m.category}</span><span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);">${m.key}</span></div><div class="memory-text">${m.value}</div></div><button class="icon-btn danger" onclick="App.memory.remove('${m.id}')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div>`).join('')||'<p style="text-align:center;color:var(--text-muted);padding:1rem;">حافظه‌ای یافت نشد</p>'; }
+    },
+
+    audio: {
+        toggleDictation() { if(!App.state.recognition) return App.ui.toast('مرورگر پشتیبانی نمی‌کند','error'); if(App.state.isRecording){App.state.recognition.stop();App.state.isRecording=false;document.getElementById('micBtn').classList.remove('recording');}else{App.state.recognition.start();App.state.isRecording=true;document.getElementById('micBtn').classList.add('recording');App.ui.toast('در حال گوش دادن...','info');} },
+        async processSTTFile(event) { const file=event.target.files[0]; if(!file) return; if(file.size>25*1024*1024) return App.ui.toast('حداکثر ۲۵MB','error'); App.ui.toast('در حال پردازش...','info'); const fd=new FormData(); fd.append('file',file); fd.append('model','whisper-large-v3-turbo'); fd.append('language','fa'); try { const res=await fetch(WORKER_URL+'/stt',{method:'POST',body:fd}); const data=await res.json(); if(data.text){document.getElementById('sttText').textContent=data.text;document.getElementById('sttResult').classList.add('active');App.ui.toast('موفق','success');}else{App.ui.toast('خطا','error');} }catch(err){App.ui.toast('خطا: '+err.message,'error');} event.target.value=''; },
+        copySTT() { const t=document.getElementById('sttText').textContent; if(t){navigator.clipboard.writeText(t);App.ui.toast('کپی شد','success');document.getElementById('userInput').value=t;App.ui.autoResize(document.getElementById('userInput'));App.ui.switchMainTab('chat');} },
+        async generateTTS() { const text=document.getElementById('ttsTextInput').value.trim(); if(!text) return App.ui.toast('متن وارد کنید','error'); const btn=document.getElementById('ttsGenerateBtn'); btn.disabled=true; btn.innerHTML='<span>⏳ در حال تولید...</span>'; try { const res=await fetch(WORKER_URL+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'canopylabs/orpheus-arabic-saudi',voice:'abdullah',input:text,response_format:'wav'})}); if(!res.ok) throw new Error('خطا'); App.state.currentTTSBlob=await res.blob(); document.getElementById('ttsAudioPlayer').src=URL.createObjectURL(App.state.currentTTSBlob); document.getElementById('ttsResult').classList.add('active'); document.getElementById('ttsDownloadBtn').classList.remove('hidden'); App.ui.toast('موفق','success'); }catch(err){App.ui.toast('خطا: '+err.message,'error');} finally{btn.disabled=false;btn.innerHTML=`<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> تولید صدا`;} },
+        downloadTTS() { if(!App.state.currentTTSBlob) return; const a=document.createElement('a'); a.href=URL.createObjectURL(App.state.currentTTSBlob); a.download=`menta-tts-${Date.now()}.wav`; a.click(); },
+        async speakMessage(text) { App.ui.toast('در حال تولید صدا...','info'); try { const res=await fetch(WORKER_URL+'/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'canopylabs/orpheus-arabic-saudi',voice:'abdullah',input:text,response_format:'wav'})}); const blob=await res.blob(); const audio=new Audio(URL.createObjectURL(blob)); audio.play(); App.ui.toast('در حال پخش','success'); }catch(err){App.ui.toast('خطا','error');} }
+    },
+
+    chat: {
+        newChat() { const chatId='c_'+Date.now(); App.state.currentChatId=chatId; App.state.chats[chatId]={title:'چت جدید',timestamp:Date.now(),pinned:false,messages:[{role:'system',content:App.chat.buildSystemPrompt()}]}; App.saveData(); App.chat.renderList(); App.chat.loadChat(chatId); document.getElementById('sidebar').classList.remove('open'); },
+        loadChat(id) { App.state.currentChatId=id; const chat=App.state.chats[id]; const container=document.getElementById('messagesContainer'); const empty=document.getElementById('emptyState'); container.innerHTML=''; if(!chat||chat.messages.length<=1){container.classList.add('hidden');empty.classList.remove('hidden');}else{empty.classList.add('hidden');container.classList.remove('hidden');chat.messages.forEach((msg,idx)=>{if(msg.role!=='system')App.chat.renderMessage(msg,idx);});App.ui.autoResize(document.getElementById('userInput'));setTimeout(()=>{document.getElementById('chatArea').scrollTop=document.getElementById('chatArea').scrollHeight;},100);} App.chat.renderList(); },
+        renderList() { const list=document.getElementById('chatList'); const sorted=Object.entries(App.state.chats).sort((a,b)=>(b[1].pinned!==a[1].pinned?(b[1].pinned?1:-1):b[1].timestamp-a[1].timestamp)); list.innerHTML=sorted.map(([id,chat])=>`<div class="chat-item ${id===App.state.currentChatId?'active':''}" onclick="App.chat.loadChat('${id}')"><svg class="chat-item-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg><div class="chat-item-content"><div class="chat-item-title">${chat.pinned?'📌 ':''}${chat.title}</div><div class="chat-item-date">${new Date(chat.timestamp).toLocaleDateString('fa-IR')}</div></div><div class="chat-item-actions" onclick="event.stopPropagation()"><button class="icon-btn" onclick="App.chat.togglePin('${id}')"><svg width="16" height="16" fill="${chat.pinned?'currentColor':'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg></button><button class="icon-btn danger" onclick="App.chat.deleteChat('${id}')"><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button></div></div>`).join('')||'<p style="text-align:center;color:var(--text-muted);padding:1rem;font-size:0.85rem;">تاریخچه‌ای وجود ندارد</p>'; },
+        togglePin(id) { App.state.chats[id].pinned=!App.state.chats[id].pinned; App.saveData(); this.renderList(); },
+        deleteChat(id) { if(confirm('حذف شود؟')){delete App.state.chats[id];App.saveData();if(App.state.currentChatId===id){const r=Object.keys(App.state.chats);if(r.length>0)App.chat.loadChat(r[0]);else App.chat.newChat();}else{this.renderList();}} },
+        search(query) { document.querySelectorAll('.chat-item').forEach(item=>{item.style.display=item.querySelector('.chat-item-title').textContent.toLowerCase().includes(query.toLowerCase())?'flex':'none';}); },
+        buildSystemPrompt() { const s=App.state.settings; let p=`You are ${s.assistantName}, an AI assistant developed by mymmenta, version 3.3.\nPersonality: ${s.personality}. Always respond in Persian (Farsi) unless asked otherwise.\n`; if(s.memoryEnabled&&App.state.memories.length>0){p+=`\nUSER MEMORY:\n`;App.state.memories.forEach(m=>{p+=`- [${m.category}] ${m.key}: ${m.value}\n`;});} return p; },
+        async sendMessage() {
+            const input=document.getElementById('userInput'); const text=input.value.trim(); if(!text||App.state.abortController) return;
+            let chatId=App.state.currentChatId;
+            if(!chatId||!App.state.chats[chatId]){chatId='c_'+Date.now();App.state.currentChatId=chatId;App.state.chats[chatId]={title:'چت جدید',timestamp:Date.now(),pinned:false,messages:[{role:'system',content:App.chat.buildSystemPrompt()}]};App.saveData();App.chat.renderList();}
+            const chat=App.state.chats[chatId]; chat.messages[0].content=this.buildSystemPrompt();
+            const userMsg={role:'user',content:text,id:'m_'+Date.now()}; chat.messages.push(userMsg);
+            if(chat.messages.length===2) chat.title=text.substring(0,30)+(text.length>30?'...':'');
+            chat.timestamp=Date.now(); App.saveData(); input.value=''; input.style.height='auto';
+            document.getElementById('emptyState').classList.add('hidden'); document.getElementById('messagesContainer').classList.remove('hidden');
+            this.renderMessage(userMsg,chat.messages.length-1);
+            const typingId='typing_'+Date.now(); const container=document.getElementById('messagesContainer');
+            const typingEl=document.createElement('div'); typingEl.className='message bot animate-fade'; typingEl.id=typingId;
+            typingEl.innerHTML='<div class="msg-avatar">🤖</div><div class="msg-content-wrapper"><div class="msg-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div></div>';
+            container.appendChild(typingEl); container.scrollTop=container.scrollHeight;
+            document.getElementById('sendBtn').classList.add('hidden'); document.getElementById('stopBtn').classList.remove('hidden');
+            App.state.abortController=new AbortController();
+            try {
+                const model=document.getElementById('modelSelect').value;
+                const payload={
+                    model: model,
+                    messages: chat.messages.map(m=>({role:m.role,content:m.content})),
+                    temperature: 0.6,
+                    max_tokens: 2048,
+                    top_p: 0.95,
+                    stream: false
+                };
+                if(model==='qwen/qwen3.6-27b'){
+                    payload.reasoning_effort='default';
+                }
+                const res=await fetch(WORKER_URL+'/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),signal:App.state.abortController.signal});
+                const data=await res.json(); typingEl.remove();
+                if(data.error){this.renderMessage({role:'assistant',content:`❌ خطا:\n\`\`\`json\n${JSON.stringify(data.error,null,2)}\n\`\`\``,id:'err_'+Date.now()},999);return;}
+                if(data.choices&&data.choices[0]){const botMsg={role:'assistant',content:data.choices[0].message.content,id:'m_'+Date.now()};chat.messages.push(botMsg);App.saveData();this.renderMessage(botMsg,chat.messages.length-1);}
+            }catch(err){typingEl.remove();if(err.name!=='AbortError')this.renderMessage({role:'assistant',content:'❌ خطا: '+err.message,id:'err_'+Date.now()},999);}
+            finally{App.state.abortController=null;document.getElementById('sendBtn').classList.remove('hidden');document.getElementById('stopBtn').classList.add('hidden');container.scrollTop=container.scrollHeight;this.renderList();}
+        },
+        renderMessage(msg,idx) { const container=document.getElementById('messagesContainer'); const isUser=msg.role==='user'; const div=document.createElement('div'); div.className=`message ${isUser?'user':'bot'} animate-fade`; let html=App.utils.parseMarkdown(msg.content); let actions=''; if(!isUser){const safe=msg.content.replace(/`/g,'\\`').replace(/\n/g,' ');actions=`<div class="msg-actions"><button class="msg-action-btn" onclick="App.ui.copyToClipboard(\`${msg.content.replace(/`/g,'\\`').replace(/\n/g,'\\n')}\`)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg> کپی</button><button class="msg-action-btn" onclick="App.audio.speakMessage(\`${safe}\`)"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg> پخش صدا</button></div>`;} div.innerHTML=`<div class="msg-avatar">${isUser?'👤':'🤖'}</div><div class="msg-content-wrapper"><div class="msg-bubble">${html}</div>${actions}</div>`; container.appendChild(div); container.scrollTop=container.scrollHeight; },
+        stopGeneration() { if(App.state.abortController) App.state.abortController.abort(); },
+        handleKeydown(e) { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();this.sendMessage();} },
+        async handleAudioUpload(event) { const file=event.target.files[0]; if(!file) return; if(file.size>25*1024*1024) return App.ui.toast('حداکثر ۲۵MB','error'); App.ui.toast('در حال تبدیل...','info'); const fd=new FormData(); fd.append('file',file); fd.append('model','whisper-large-v3-turbo'); fd.append('language','fa'); try{const res=await fetch(WORKER_URL+'/stt',{method:'POST',body:fd});const data=await res.json();if(data.text){document.getElementById('userInput').value=data.text;App.ui.autoResize(document.getElementById('userInput'));App.ui.toast('موفق','success');}}catch(err){App.ui.toast('خطا','error');} event.target.value=''; }
+    },
+
+    utils: {
+        parseMarkdown(text) {
+            let thinkHtml = '';
+            let mainText = text;
+            
+            const thinkMatch = text.match(/<think>([\s\S]*?)<\/think>/i);
+            if (thinkMatch) {
+                const thinkContent = thinkMatch[1].trim();
+                mainText = text.replace(/<think>[\s\S]*?<\/think>/i, '').trim();
+                const escapedThink = thinkContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const thinkId = 'think-' + Math.random().toString(36).substr(2, 9);
+                thinkHtml = `
+                <div class="think-block">
+                    <button class="think-toggle" onclick="const el=document.getElementById('${thinkId}'); el.classList.toggle('hidden'); const arrow=this.querySelector('.think-arrow'); arrow.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';">
+                        <svg class="think-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M9 5l7 7-7 7"/></svg>
+                        <span>فرآیند تفکر مدل</span>
+                    </button>
+                    <div id="${thinkId}" class="hidden think-content">${escapedThink}</div>
+                </div>`;
+            } else {
+                const codeThinkMatch = mainText.match(/```(?:thinking|thought|reasoning)\n([\s\S]*?)\n```/i);
+                if (codeThinkMatch) {
+                    const thinkContent = codeThinkMatch[1].trim();
+                    mainText = mainText.replace(/```(?:thinking|thought|reasoning)\n[\s\S]*?\n```/i, '').trim();
+                    const escapedThink = thinkContent.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                    const thinkId = 'think-' + Math.random().toString(36).substr(2, 9);
+                    thinkHtml = `
+                    <div class="think-block">
+                        <button class="think-toggle" onclick="const el=document.getElementById('${thinkId}'); el.classList.toggle('hidden'); const arrow=this.querySelector('.think-arrow'); arrow.style.transform = el.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';">
+                            <svg class="think-arrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="transition: transform 0.2s;"><path d="M9 5l7 7-7 7"/></svg>
+                            <span>فرآیند تفکر مدل</span>
+                        </button>
+                        <div id="${thinkId}" class="hidden think-content">${escapedThink}</div>
+                    </div>`;
+                }
+            }
+
+            let html = mainText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code><button class="copy-code-btn" onclick="App.ui.copyToClipboard(this.previousSibling.textContent)">کپی</button></pre>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+
+            return thinkHtml + html;
+        }
+    }
+};
+
+window.addEventListener('DOMContentLoaded',()=>App.init());
+</script>
+</body>
+</html>
