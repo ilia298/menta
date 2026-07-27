@@ -1,0 +1,1515 @@
+<!DOCTYPE html>
+<html lang="fa" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ماشین‌حساب هوشمند پیشرفته</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* =========================================
+           متغیرهای CSS و تم‌بندی پیشرفته
+           ========================================= */
+        :root {
+            /* تم تیره - Glassmorphism */
+            --bg-primary: rgba(32, 32, 32, 0.95);
+            --bg-secondary: rgba(45, 45, 45, 0.9);
+            --bg-tertiary: rgba(56, 56, 56, 0.85);
+            --bg-glass: rgba(255, 255, 255, 0.05);
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #666666;
+            --accent-color: #4cc2ff;
+            --accent-hover: #66ccff;
+            --accent-glow: rgba(76, 194, 255, 0.3);
+            --success-color: #4ade80;
+            --warning-color: #fbbf24;
+            --error-color: #f87171;
+            --btn-hover: rgba(69, 69, 69, 0.8);
+            --btn-active: rgba(85, 85, 85, 0.9);
+            --equals-bg: linear-gradient(135deg, #4cc2ff 0%, #0ea5e9 100%);
+            --equals-text: #000000;
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-glow: 0 0 20px var(--accent-glow);
+            --border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+            --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            --backdrop-blur: blur(20px);
+        }
+
+        [data-theme="light"] {
+            --bg-primary: rgba(243, 243, 243, 0.95);
+            --bg-secondary: rgba(255, 255, 255, 0.9);
+            --bg-tertiary: rgba(240, 240, 240, 0.85);
+            --bg-glass: rgba(0, 0, 0, 0.03);
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --btn-hover: rgba(220, 220, 220, 0.8);
+            --btn-active: rgba(200, 200, 200, 0.9);
+            --equals-text: #ffffff;
+            --border-subtle: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* =========================================
+           ریست و استایل‌های پایه
+           ========================================= */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI Variable', 'Segoe UI', 'Vazirmatn', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* پس‌زمینه متحرک */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(76, 194, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+            animation: bgShift 20s ease-in-out infinite;
+            z-index: 0;
+        }
+
+        @keyframes bgShift {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* =========================================
+           کانتینر اصلی برنامه
+           ========================================= */
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            height: 92vh;
+            max-height: 750px;
+            background: var(--bg-primary);
+            backdrop-filter: var(--backdrop-blur);
+            -webkit-backdrop-filter: var(--backdrop-blur);
+            border-radius: 16px;
+            border: var(--border-subtle);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+            z-index: 1;
+            animation: slideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .app-container.scientific-mode {
+            max-width: 650px;
+        }
+
+        .app-container.fullscreen {
+            max-width: 100%;
+            max-height: 100%;
+            height: 100vh;
+            border-radius: 0;
+        }
+
+        /* =========================================
+           هدر و ناوبری
+           ========================================= */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--bg-secondary);
+            backdrop-filter: var(--backdrop-blur);
+            border-bottom: var(--border-subtle);
+            position: relative;
+            z-index: 10;
+        }
+
+        .nav-left, .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-title {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .icon-btn {
+            background: var(--bg-glass);
+            border: var(--border-subtle);
+            color: var(--text-primary);
+            font-size: 14px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 8px;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .icon-btn:hover::before {
+            width: 200%;
+            height: 200%;
+        }
+
+        .icon-btn:hover {
+            background: var(--btn-hover);
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.95);
+        }
+
+        .icon-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =========================================
+           ناحیه نمایش
+           ========================================= */
+        .display-area {
+            padding: 20px 24px;
+            text-align: right;
+            flex-shrink: 0;
+            position: relative;
+            background: var(--bg-glass);
+            border-bottom: var(--border-subtle);
+        }
+
+        .memory-indicator {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 11px;
+            color: var(--accent-color);
+            font-weight: bold;
+            opacity: 0;
+            transition: var(--transition-smooth);
+            padding: 4px 8px;
+            background: rgba(76, 194, 255, 0.1);
+            border-radius: 4px;
+            border: 1px solid var(--accent-color);
+        }
+
+        .memory-indicator.active {
+            opacity: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+            50% { box-shadow: 0 0 0 8px transparent; }
+        }
+
+        .expression {
+            font-size: 15px;
+            color: var(--text-secondary);
+            min-height: 24px;
+            word-wrap: break-word;
+            margin-bottom: 8px;
+            transition: var(--transition-fast);
+        }
+
+        .result {
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--text-primary);
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: none;
+            line-height: 1.2;
+            transition: var(--transition-smooth);
+        }
+
+        .result::-webkit-scrollbar {
+            display: none;
+        }
+
+        .result.preview {
+            color: var(--text-muted);
+            font-size: 32px;
+            font-weight: 500;
+        }
+
+        .result.error {
+            color: var(--error-color);
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* =========================================
+           ناحیه دکمه‌ها
+           ========================================= */
+        .buttons-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+            gap: 8px;
+        }
+
+        .memory-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            margin-bottom: 4px;
+        }
+
+        .btn-grid {
+            flex: 1;
+            display: grid;
+            gap: 6px;
+            transition: var(--transition-smooth);
+        }
+
+        .standard-grid {
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(6, 1fr);
+        }
+
+        .scientific-grid {
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(7, 1fr);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* استایل پایه دکمه‌ها */
+        .btn {
+            border: var(--border-subtle);
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--bg-tertiary);
+            backdrop-filter: var(--backdrop-blur);
+            color: var(--text-primary);
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* افکت Ripple */
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s, opacity 0.6s;
+            opacity: 0;
+        }
+
+        .btn:active::after {
+            width: 300%;
+            height: 300%;
+            opacity: 1;
+            transition: 0s;
+        }
+
+        .btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.96);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* انواع دکمه‌ها */
+        .btn.func {
+            background: var(--bg-secondary);
+            font-size: 14px;
+        }
+
+        .btn.op {
+            background: var(--bg-secondary);
+            color: var(--accent-color);
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .btn.op:hover {
+            color: var(--accent-hover);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn.sci {
+            background: var(--bg-secondary);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .btn.sci:hover {
+            color: var(--text-primary);
+        }
+
+        .btn.equals {
+            background: var(--equals-bg);
+            color: var(--equals-text);
+            font-size: 24px;
+            font-weight: 700;
+            border: none;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn.equals:hover {
+            box-shadow: var(--shadow-lg), var(--shadow-glow);
+            transform: translateY(-3px);
+        }
+
+        .mem-btn {
+            font-size: 12px;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .mem-btn:hover {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border-color: var(--accent-color);
+        }
+
+        /* =========================================
+           پنل تاریخچه
+           ========================================= */
+        .history-panel {
+            position: absolute;
+            top: 0;
+            right: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            backdrop-filter: var(--backdrop-blur);
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .history-panel.open {
+            right: 0;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 24px;
+            border-bottom: var(--border-subtle);
+            background: var(--bg-secondary);
+        }
+
+        .history-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-color) 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .history-search {
+            flex: 1;
+            margin: 0 16px;
+            padding: 8px 14px;
+            background: var(--bg-glass);
+            border: var(--border-subtle);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: var(--transition-fast);
+        }
+
+        .history-search:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .history-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+            scroll-behavior: smooth;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: var(--bg-glass);
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: var(--accent-color);
+            border-radius: 3px;
+        }
+
+        .empty-history {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 60px;
+            font-size: 15px;
+        }
+
+        .history-item {
+            text-align: right;
+            margin-bottom: 16px;
+            cursor: pointer;
+            padding: 14px 18px;
+            border-radius: 10px;
+            background: var(--bg-glass);
+            border: var(--border-subtle);
+            transition: var(--transition-fast);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .history-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-color);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .history-item:hover {
+            background: var(--btn-hover);
+            transform: translateX(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .history-item:hover::before {
+            transform: scaleY(1);
+        }
+
+        .history-item .hist-expr {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .history-item .hist-result {
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .history-item .hist-time {
+            position: absolute;
+            top: 14px;
+            left: 18px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* =========================================
+           نوار وضعیت
+           ========================================= */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 18px;
+            background: var(--bg-secondary);
+            border-top: var(--border-subtle);
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: blink 2s ease-in-out infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* =========================================
+           Tooltips
+           ========================================= */
+        [data-tooltip] {
+            position: relative;
+        }
+
+        [data-tooltip]::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition-fast);
+            border: var(--border-subtle);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+        }
+
+        [data-tooltip]:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
+        }
+
+        /* =========================================
+           طراحی واکنش‌گرا
+           ========================================= */
+        @media (max-width: 480px) {
+            .app-container {
+                height: 100vh;
+                max-height: 100vh;
+                border-radius: 0;
+            }
+            
+            .result {
+                font-size: 40px;
+            }
+            
+            .btn {
+                font-size: 14px;
+            }
+            
+            .btn.sci {
+                font-size: 11px;
+            }
+
+            .icon-btn span {
+                display: none;
+            }
+        }
+
+        /* انیمیشن‌های ورود */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn {
+            animation: fadeInUp 0.4s ease-out backwards;
+        }
+
+        .btn:nth-child(1) { animation-delay: 0.02s; }
+        .btn:nth-child(2) { animation-delay: 0.04s; }
+        .btn:nth-child(3) { animation-delay: 0.06s; }
+        .btn:nth-child(4) { animation-delay: 0.08s; }
+        .btn:nth-child(5) { animation-delay: 0.1s; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container" id="app-container">
+        <!-- هدر -->
+        <header class="app-header">
+            <div class="nav-left">
+                <button class="icon-btn" data-tooltip="منو" id="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 class="app-title">ماشین‌حساب هوشمند</h1>
+            </div>
+            <div class="nav-right">
+                <button class="icon-btn" id="theme-toggle" data-tooltip="تغییر تم">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="icon-btn" id="mode-toggle" data-tooltip="حالت علمی">
+                    <i class="fas fa-flask"></i>
+                    <span>علمی</span>
+                </button>
+                <button class="icon-btn" id="history-toggle" data-tooltip="تاریخچه">
+                    <i class="fas fa-history"></i>
+                </button>
+                <button class="icon-btn" id="fullscreen-toggle" data-tooltip="تمام‌صفحه">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- ناحیه نمایش -->
+        <section class="display-area">
+            <div class="memory-indicator" id="memory-indicator">M</div>
+            <div class="expression" id="expression-display"></div>
+            <div class="result" id="result-display">0</div>
+        </section>
+
+        <!-- ناحیه دکمه‌ها -->
+        <section class="buttons-area">
+            <!-- ردیف حافظه -->
+            <div class="memory-row">
+                <button class="btn mem-btn" data-action="mc" data-tooltip="پاک کردن حافظه">MC</button>
+                <button class="btn mem-btn" data-action="mr" data-tooltip="بازیابی حافظه">MR</button>
+                <button class="btn mem-btn" data-action="m-plus" data-tooltip="افزودن به حافظه">M+</button>
+                <button class="btn mem-btn" data-action="m-minus" data-tooltip="کاهش از حافظه">M-</button>
+                <button class="btn mem-btn" data-action="ms" data-tooltip="ذخیره در حافظه">MS</button>
+            </div>
+
+            <!-- گرید استاندارد -->
+            <div class="btn-grid standard-grid" id="standard-grid">
+                <button class="btn func" data-action="percent" data-tooltip="درصد (Shift+5)">%</button>
+                <button class="btn func" data-action="ce" data-tooltip="پاک کردن ورودی (Delete)">CE</button>
+                <button class="btn func" data-action="clear" data-tooltip="پاک کردن همه (Escape)">C</button>
+                <button class="btn func" data-action="backspace" data-tooltip="بازگشت (Backspace)"><i class="fas fa-backspace"></i></button>
+
+                <button class="btn func" data-action="inv" data-tooltip="معکوس (r)">1/x</button>
+                <button class="btn func" data-action="square" data-tooltip="توان دوم (Ctrl+2)">x²</button>
+                <button class="btn func" data-action="sqrt" data-tooltip="جذر (Ctrl+q)">√x</button>
+                <button class="btn op" data-action="operator" data-value="/" data-tooltip="تقسیم (/)">÷</button>
+
+                <button class="btn num" data-action="number" data-value="7">7</button>
+                <button class="btn num" data-action="number" data-value="8">8</button>
+                <button class="btn num" data-action="number" data-value="9">9</button>
+                <button class="btn op" data-action="operator" data-value="*" data-tooltip="ضرب (*)">×</button>
+
+                <button class="btn num" data-action="number" data-value="4">4</button>
+                <button class="btn num" data-action="number" data-value="5">5</button>
+                <button class="btn num" data-action="number" data-value="6">6</button>
+                <button class="btn op" data-action="operator" data-value="-" data-tooltip="تفریق (-)">−</button>
+
+                <button class="btn num" data-action="number" data-value="1">1</button>
+                <button class="btn num" data-action="number" data-value="2">2</button>
+                <button class="btn num" data-action="number" data-value="3">3</button>
+                <button class="btn op" data-action="operator" data-value="+" data-tooltip="جمع (+)">+</button>
+
+                <button class="btn func" data-action="negate" data-tooltip="تغییر علامت (F9)">+/−</button>
+                <button class="btn num" data-action="number" data-value="0">0</button>
+                <button class="btn num" data-action="decimal" data-tooltip="اعشار (.)">.</button>
+                <button class="btn equals" data-action="calculate" data-tooltip="محاسبه (Enter)">=</button>
+            </div>
+
+            <!-- گرید علمی -->
+            <div class="btn-grid scientific-grid hidden" id="scientific-grid">
+                <button class="btn func" data-action="parenthesis" data-value="(" data-tooltip="پرانتز باز">(</button>
+                <button class="btn func" data-action="parenthesis" data-value=")" data-tooltip="پرانتز بسته">)</button>
+                <button class="btn func" data-action="clear" data-tooltip="پاک کردن">C</button>
+                <button class="btn func" data-action="backspace" data-tooltip="بازگشت"><i class="fas fa-backspace"></i></button>
+                <button class="btn op" data-action="operator" data-value="/" data-tooltip="تقسیم">÷</button>
+
+                <button class="btn sci" data-action="function" data-value="sin" data-tooltip="سینوس">sin</button>
+                <button class="btn sci" data-action="function" data-value="cos" data-tooltip="کسینوس">cos</button>
+                <button class="btn sci" data-action="function" data-value="tan" data-tooltip="تانژانت">tan</button>
+                <button class="btn func" data-action="percent" data-tooltip="درصد">%</button>
+                <button class="btn op" data-action="operator" data-value="*" data-tooltip="ضرب">×</button>
+
+                <button class="btn sci" data-action="function" data-value="log" data-tooltip="لگاریتم پایه 10">log</button>
+                <button class="btn sci" data-action="function" data-value="ln" data-tooltip="لگاریتم طبیعی">ln</button>
+                <button class="btn sci" data-action="function" data-value="sqrt" data-tooltip="جذر">√</button>
+                <button class="btn num" data-action="number" data-value="7">7</button>
+                <button class="btn num" data-action="number" data-value="8">8</button>
+
+                <button class="btn sci" data-action="function" data-value="pow" data-tooltip="توان">x^y</button>
+                <button class="btn sci" data-action="constant" data-value="pi" data-tooltip="عدد پی">π</button>
+                <button class="btn sci" data-action="constant" data-value="e" data-tooltip="عدد اویلر">e</button>
+                <button class="btn num" data-action="number" data-value="4">4</button>
+                <button class="btn num" data-action="number" data-value="5">5</button>
+
+                <button class="btn sci" data-action="function" data-value="fact" data-tooltip="فاکتوریل">x!</button>
+                <button class="btn sci" data-action="function" data-value="inv" data-tooltip="معکوس">1/x</button>
+                <button class="btn func" data-action="negate" data-tooltip="تغییر علامت">+/−</button>
+                <button class="btn num" data-action="number" data-value="1">1</button>
+                <button class="btn num" data-action="number" data-value="2">2</button>
+
+                <button class="btn op" data-action="operator" data-value="-" data-tooltip="تفریق">−</button>
+                <button class="btn op" data-action="operator" data-value="+" data-tooltip="جمع">+</button>
+                <button class="btn num" data-action="number" data-value="9">9</button>
+                <button class="btn num" data-action="number" data-value="6">6</button>
+                <button class="btn num" data-action="number" data-value="3">3</button>
+
+                <button class="btn num" data-action="number" data-value="0" style="grid-column: span 2;">0</button>
+                <button class="btn num" data-action="decimal" data-tooltip="اعشار">.</button>
+                <button class="btn equals" data-action="calculate" style="grid-row: span 2;" data-tooltip="محاسبه">=</button>
+            </div>
+        </section>
+
+        <!-- نوار وضعیت -->
+        <div class="status-bar">
+            <div class="status-item">
+                <div class="status-dot"></div>
+                <span>آماده</span>
+            </div>
+            <div class="status-item">
+                <span id="angle-mode">درجه</span>
+            </div>
+        </div>
+
+        <!-- پنل تاریخچه -->
+        <aside class="history-panel" id="history-panel">
+            <div class="history-header">
+                <h2>تاریخچه</h2>
+                <input type="text" class="history-search" id="history-search" placeholder="جستجو در تاریخچه...">
+                <button id="clear-history" class="icon-btn" data-tooltip="پاک کردن تاریخچه">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+            <div class="history-list" id="history-list">
+                <p class="empty-history">هنوز تاریخچه‌ای وجود ندارد</p>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        /**
+         * ==========================================
+         * ماشین‌حساب هوشمند پیشرفته
+         * معماری: MVC با قابلیت‌های هوشمند
+         * ==========================================
+         */
+
+        // ==========================================
+        // 1. مدل: منطق ماشین‌حساب
+        // ==========================================
+        class Calculator {
+            constructor() {
+                this.reset();
+                this.memory = 0;
+                this.hasMemory = false;
+                this.angleMode = 'deg'; // deg یا rad
+                this.justCalculated = false; // آیا تازه مساوی زده شده؟
+            }
+
+            reset() {
+                this.currentOperand = '0';
+                this.expression = '';
+                this.shouldResetScreen = false;
+                this.lastResult = null;
+                this.justCalculated = false;
+            }
+
+            appendNumber(number) {
+                // اگر تازه مساوی زده شده و عدد جدید وارد می‌شود، ریست کن
+                if (this.justCalculated) {
+                    this.currentOperand = '0';
+                    this.expression = '';
+                    this.justCalculated = false;
+                }
+
+                if (this.shouldResetScreen || this.currentOperand === '0') {
+                    this.currentOperand = number.toString();
+                    this.shouldResetScreen = false;
+                } else {
+                    if (this.currentOperand === '0' && number === '0') return;
+                    this.currentOperand += number.toString();
+                }
+            }
+
+            appendDecimal() {
+                // اگر تازه مساوی زده شده، ریست کن
+                if (this.justCalculated) {
+                    this.currentOperand = '0';
+                    this.expression = '';
+                    this.justCalculated = false;
+                }
+
+                if (this.shouldResetScreen) {
+                    this.currentOperand = '0.';
+                    this.shouldResetScreen = false;
+                    return;
+                }
+                if (!this.currentOperand.includes('.')) {
+                    this.currentOperand += '.';
+                }
+            }
+
+            chooseOperator(op) {
+                if (this.currentOperand === '' && this.expression === '') return;
+                
+                // اگر تازه مساوی زده شده، نتیجه قبلی را به عنوان شروع استفاده کن
+                if (this.justCalculated) {
+                    this.expression = this.currentOperand + op;
+                    this.currentOperand = '';
+                    this.shouldResetScreen = true;
+                    this.justCalculated = false;
+                    return;
+                }
+                
+                this.shouldResetScreen = true;
+                
+                if (['+', '-', '*', '/'].includes(this.expression.slice(-1))) {
+                    this.expression = this.expression.slice(0, -1) + op;
+                } else {
+                    this.expression += this.currentOperand + op;
+                    this.currentOperand = '';
+                }
+            }
+
+            applyFunction(func) {
+                // اگر تازه مساوی زده شده، ریست کن
+                if (this.justCalculated) {
+                    this.expression = '';
+                    this.justCalculated = false;
+                }
+
+                let val = parseFloat(this.currentOperand) || 0;
+                let result = 0;
+
+                switch (func) {
+                    case 'sin': 
+                        result = this.angleMode === 'deg' 
+                            ? Math.sin(val * Math.PI / 180) 
+                            : Math.sin(val);
+                        break;
+                    case 'cos': 
+                        result = this.angleMode === 'deg' 
+                            ? Math.cos(val * Math.PI / 180) 
+                            : Math.cos(val);
+                        break;
+                    case 'tan': 
+                        result = this.angleMode === 'deg' 
+                            ? Math.tan(val * Math.PI / 180) 
+                            : Math.tan(val);
+                        break;
+                    case 'log': result = Math.log10(val); break;
+                    case 'ln': result = Math.log(val); break;
+                    case 'sqrt': result = Math.sqrt(val); break;
+                    case 'inv': result = 1 / val; break;
+                    case 'square': result = val * val; break;
+                    case 'fact': result = this.factorial(val); break;
+                    default: return;
+                }
+
+                this.expression += `${func}(${this.currentOperand})`;
+                this.currentOperand = this.formatNumber(result);
+                this.shouldResetScreen = true;
+            }
+
+            insertConstant(constant) {
+                // اگر تازه مساوی زده شده، ریست کن
+                if (this.justCalculated) {
+                    this.expression = '';
+                    this.justCalculated = false;
+                }
+
+                if (constant === 'pi') this.currentOperand = Math.PI.toString();
+                if (constant === 'e') this.currentOperand = Math.E.toString();
+                this.shouldResetScreen = true;
+            }
+
+            insertParenthesis(paren) {
+                // اگر تازه مساوی زده شده، ریست کن
+                if (this.justCalculated) {
+                    this.expression = '';
+                    this.currentOperand = '0';
+                    this.justCalculated = false;
+                }
+
+                if (this.shouldResetScreen || this.currentOperand === '0') {
+                    this.currentOperand = paren;
+                    this.shouldResetScreen = false;
+                } else {
+                    this.currentOperand += paren;
+                }
+            }
+
+            calculate() {
+                let evalExpr = this.expression + this.currentOperand;
+                if (!evalExpr) return;
+
+                try {
+                    // بررسی و تکمیل خودکار پرانتزها
+                    evalExpr = this.autoCompleteParentheses(evalExpr);
+
+                    let safeExpr = evalExpr
+                        .replace(/×/g, '*')
+                        .replace(/÷/g, '/')
+                        .replace(/−/g, '-')
+                        .replace(/\^/g, '**')
+                        .replace(/π/g, 'Math.PI')
+                        .replace(/(?<![a-zA-Z])e(?![a-zA-Z])/g, 'Math.E');
+
+                    let result = new Function('return ' + safeExpr)();
+                    
+                    if (!isFinite(result)) throw new Error("خطای ریاضی");
+
+                    this.lastResult = result;
+                    this.expression = evalExpr + '=';
+                    this.currentOperand = this.formatNumber(result);
+                    this.shouldResetScreen = true;
+                    this.justCalculated = true; // علامت بزن که تازه مساوی زده شده
+                    
+                    return { expr: evalExpr, result: this.currentOperand };
+                } catch (error) {
+                    this.currentOperand = 'خطا';
+                    this.shouldResetScreen = true;
+                    this.justCalculated = false;
+                    return null;
+                }
+            }
+
+            /** تکمیل خودکار پرانتزها */
+            autoCompleteParentheses(expr) {
+                let openCount = (expr.match(/\(/g) || []).length;
+                let closeCount = (expr.match(/\)/g) || []).length;
+                
+                while (closeCount < openCount) {
+                    expr += ')';
+                    closeCount++;
+                }
+                
+                return expr;
+            }
+
+            /** پیش‌نمایش نتیجه در حین تایپ */
+            previewResult() {
+                let evalExpr = this.expression + this.currentOperand;
+                if (!evalExpr || evalExpr === '0') return null;
+
+                try {
+                    evalExpr = this.autoCompleteParentheses(evalExpr);
+                    
+                    let safeExpr = evalExpr
+                        .replace(/×/g, '*')
+                        .replace(/÷/g, '/')
+                        .replace(/−/g, '-')
+                        .replace(/\^/g, '**')
+                        .replace(/π/g, 'Math.PI')
+                        .replace(/(?<![a-zA-Z])e(?![a-zA-Z])/g, 'Math.E');
+
+                    let result = new Function('return ' + safeExpr)();
+                    
+                    if (!isFinite(result)) return null;
+                    
+                    return this.formatNumber(result);
+                } catch (error) {
+                    return null;
+                }
+            }
+
+            clearEntry() {
+                this.currentOperand = '0';
+                this.justCalculated = false;
+            }
+
+            clearAll() {
+                this.reset();
+            }
+
+            backspace() {
+                if (this.shouldResetScreen) return;
+                this.currentOperand = this.currentOperand.slice(0, -1) || '0';
+                this.justCalculated = false;
+            }
+
+            negate() {
+                if (this.currentOperand !== '0') {
+                    this.currentOperand = this.currentOperand.startsWith('-') 
+                        ? this.currentOperand.slice(1) 
+                        : '-' + this.currentOperand;
+                }
+            }
+
+            percent() {
+                let val = parseFloat(this.currentOperand);
+                this.currentOperand = this.formatNumber(val / 100);
+                this.shouldResetScreen = true;
+            }
+
+            toggleAngleMode() {
+                this.angleMode = this.angleMode === 'deg' ? 'rad' : 'deg';
+                return this.angleMode;
+            }
+
+            // توابع حافظه
+            memoryClear() { this.memory = 0; this.hasMemory = false; }
+            memoryRecall() { 
+                if (this.hasMemory) {
+                    this.currentOperand = this.formatNumber(this.memory); 
+                    this.shouldResetScreen = true; 
+                }
+            }
+            memoryAdd() { this.memory += parseFloat(this.currentOperand) || 0; this.hasMemory = true; }
+            memorySubtract() { this.memory -= parseFloat(this.currentOperand) || 0; this.hasMemory = true; }
+            memoryStore() { this.memory = parseFloat(this.currentOperand) || 0; this.hasMemory = true; }
+
+            factorial(n) {
+                if (n < 0) return NaN;
+                if (n === 0 || n === 1) return 1;
+                if (n > 170) return Infinity; // جلوگیری از overflow
+                let result = 1;
+                for (let i = 2; i <= n; i++) result *= i;
+                return result;
+            }
+
+            formatNumber(num) {
+                if (typeof num === 'string') return num;
+                if (!isFinite(num)) return num.toString();
+                
+                // فرمت‌بندی هوشمند اعداد بزرگ
+                let formatted = parseFloat(num.toPrecision(12)).toString();
+                
+                // افزودن کاما برای اعداد بزرگ
+                if (Math.abs(num) >= 1000) {
+                    let parts = formatted.split('.');
+                    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                    formatted = parts.join('.');
+                }
+                
+                return formatted;
+            }
+        }
+
+        // ==========================================
+        // 2. مدیریت تاریخچه
+        // ==========================================
+        class HistoryManager {
+            constructor() {
+                this.entries = [];
+                this.loadFromStorage();
+            }
+
+            addEntry(expression, result) {
+                this.entries.unshift({ 
+                    expression, 
+                    result, 
+                    timestamp: Date.now() 
+                });
+                if (this.entries.length > 100) this.entries.pop();
+                this.saveToStorage();
+            }
+
+            getEntries() {
+                return this.entries;
+            }
+
+            search(query) {
+                if (!query) return this.entries;
+                return this.entries.filter(entry => 
+                    entry.expression.includes(query) || 
+                    entry.result.includes(query)
+                );
+            }
+
+            clear() {
+                this.entries = [];
+                this.saveToStorage();
+            }
+
+            saveToStorage() {
+                localStorage.setItem('smart_calc_history', JSON.stringify(this.entries));
+            }
+
+            loadFromStorage() {
+                const saved = localStorage.getItem('smart_calc_history');
+                if (saved) {
+                    try { this.entries = JSON.parse(saved); } 
+                    catch (e) { this.entries = []; }
+                }
+            }
+
+            formatTime(timestamp) {
+                const date = new Date(timestamp);
+                const now = new Date();
+                const diff = now - date;
+                
+                if (diff < 60000) return 'الان';
+                if (diff < 3600000) return `${Math.floor(diff / 60000)} دقیقه پیش`;
+                if (diff < 86400000) return `${Math.floor(diff / 3600000)} ساعت پیش`;
+                
+                return date.toLocaleDateString('fa-IR');
+            }
+        }
+
+        // ==========================================
+        // 3. مدیریت رابط کاربری
+        // ==========================================
+        class UIManager {
+            constructor(calculator, historyManager) {
+                this.calc = calculator;
+                this.history = historyManager;
+                this.isScientific = false;
+                this.isFullscreen = false;
+                this.currentTheme = localStorage.getItem('calc_theme') || 'dark';
+
+                this.els = {
+                    exprDisplay: document.getElementById('expression-display'),
+                    resDisplay: document.getElementById('result-display'),
+                    memIndicator: document.getElementById('memory-indicator'),
+                    stdGrid: document.getElementById('standard-grid'),
+                    sciGrid: document.getElementById('scientific-grid'),
+                    modeToggle: document.getElementById('mode-toggle'),
+                    histToggle: document.getElementById('history-toggle'),
+                    histPanel: document.getElementById('history-panel'),
+                    histList: document.getElementById('history-list'),
+                    histSearch: document.getElementById('history-search'),
+                    clearHist: document.getElementById('clear-history'),
+                    themeToggle: document.getElementById('theme-toggle'),
+                    fullscreenToggle: document.getElementById('fullscreen-toggle'),
+                    appContainer: document.getElementById('app-container'),
+                    angleMode: document.getElementById('angle-mode')
+                };
+
+                this.applyTheme(this.currentTheme);
+                this.init();
+            }
+
+            init() {
+                // کلیک روی دکمه‌ها
+                document.querySelectorAll('.btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.handleButton(btn));
+                });
+
+                // دکمه‌های حافظه
+                document.querySelectorAll('.mem-btn').forEach(btn => {
+                    btn.addEventListener('click', () => this.handleMemory(btn.dataset.action));
+                });
+
+                // تغییر حالت
+                this.els.modeToggle.addEventListener('click', () => this.toggleMode());
+                this.els.histToggle.addEventListener('click', () => this.toggleHistory());
+                this.els.clearHist.addEventListener('click', () => this.clearHistory());
+                this.els.themeToggle.addEventListener('click', () => this.toggleTheme());
+                this.els.fullscreenToggle.addEventListener('click', () => this.toggleFullscreen());
+                
+                // جستجو در تاریخچه
+                this.els.histSearch.addEventListener('input', (e) => this.searchHistory(e.target.value));
+
+                // پشتیبانی از کیبورد
+                document.addEventListener('keydown', (e) => this.handleKeyboard(e));
+
+                this.updateDisplay();
+            }
+
+            handleButton(btn) {
+                const action = btn.dataset.action;
+                const value = btn.dataset.value;
+
+                switch (action) {
+                    case 'number': this.calc.appendNumber(value); break;
+                    case 'decimal': this.calc.appendDecimal(); break;
+                    case 'operator': this.calc.chooseOperator(value); break;
+                    case 'function': this.calc.applyFunction(value); break;
+                    case 'constant': this.calc.insertConstant(value); break;
+                    case 'parenthesis': this.calc.insertParenthesis(value); break;
+                    case 'calculate': this.performCalculation(); break;
+                    case 'clear': this.calc.clearAll(); break;
+                    case 'ce': this.calc.clearEntry(); break;
+                    case 'backspace': this.calc.backspace(); break;
+                    case 'negate': this.calc.negate(); break;
+                    case 'percent': this.calc.percent(); break;
+                    case 'square': this.calc.applyFunction('square'); break;
+                    case 'sqrt': this.calc.applyFunction('sqrt'); break;
+                    case 'inv': this.calc.applyFunction('inv'); break;
+                }
+                
+                this.updateDisplay();
+            }
+
+            handleMemory(action) {
+                switch (action) {
+                    case 'mc': this.calc.memoryClear(); break;
+                    case 'mr': this.calc.memoryRecall(); break;
+                    case 'm-plus': this.calc.memoryAdd(); break;
+                    case 'm-minus': this.calc.memorySubtract(); break;
+                    case 'ms': this.calc.memoryStore(); break;
+                }
+                this.updateMemoryIndicator();
+                this.updateDisplay();
+            }
+
+            performCalculation() {
+                const result = this.calc.calculate();
+                if (result) {
+                    this.history.addEntry(result.expr, result.result);
+                    this.renderHistory();
+                }
+            }
+
+            updateDisplay() {
+                let fullExpr = this.calc.expression + this.calc.currentOperand;
+                
+                fullExpr = fullExpr
+                    .replace(/\*/g, '×')
+                    .replace(/\//g, '÷')
+                    .replace(/-/g, '−');
+
+                // نمایش نتیجه اصلی
+                this.els.resDisplay.textContent = this.calc.currentOperand === '' ? '0' : this.calc.currentOperand;
+                
+                // نمایش عبارت
+                if (this.calc.expression && !this.calc.shouldResetScreen) {
+                    this.els.exprDisplay.textContent = fullExpr;
+                } else if (this.calc.expression.endsWith('=')) {
+                    this.els.exprDisplay.textContent = this.calc.expression
+                        .replace(/\*/g, '×')
+                        .replace(/\//g, '÷')
+                        .replace(/-/g, '−');
+                } else {
+                    this.els.exprDisplay.textContent = '';
+                }
+
+                // پیش‌نمایش هوشمند نتیجه
+                if (!this.calc.shouldResetScreen && this.calc.currentOperand !== '0' && !this.calc.justCalculated) {
+                    const preview = this.calc.previewResult();
+                    if (preview && preview !== this.calc.currentOperand) {
+                        this.els.exprDisplay.textContent += ` = ${preview}`;
+                    }
+                }
+
+                // کلاس خطا
+                this.els.resDisplay.classList.toggle('error', this.calc.currentOperand === 'خطا');
+            }
+
+            updateMemoryIndicator() {
+                this.els.memIndicator.classList.toggle('active', this.calc.hasMemory);
+            }
+
+            toggleMode() {
+                this.isScientific = !this.isScientific;
+                this.els.stdGrid.classList.toggle('hidden', this.isScientific);
+                this.els.sciGrid.classList.toggle('hidden', !this.isScientific);
+                this.els.appContainer.classList.toggle('scientific-mode', this.isScientific);
+                
+                this.els.modeToggle.innerHTML = this.isScientific 
+                    ? '<i class="fas fa-calculator"></i><span>استاندارد</span>' 
+                    : '<i class="fas fa-flask"></i><span>علمی</span>';
+            }
+
+            toggleHistory() {
+                this.els.histPanel.classList.toggle('open');
+                if (this.els.histPanel.classList.contains('open')) {
+                    this.els.histSearch.focus();
+                }
+            }
+
+            clearHistory() {
+                if (confirm('آیا از پاک کردن تاریخچه مطمئن هستید؟')) {
+                    this.history.clear();
+                    this.renderHistory();
+                }
+            }
+
+            searchHistory(query) {
+                const entries = this.history.search(query);
+                this.renderHistoryList(entries);
+            }
+
+            renderHistory() {
+                const entries = this.history.getEntries();
+                this.renderHistoryList(entries);
+            }
+
+            renderHistoryList(entries) {
+                if (entries.length === 0) {
+                    this.els.histList.innerHTML = '<p class="empty-history">هنوز تاریخچه‌ای وجود ندارد</p>';
+                    return;
+                }
+
+                this.els.histList.innerHTML = entries.map((entry, index) => `
+                    <div class="history-item" data-index="${index}">
+                        <div class="hist-time">${this.history.formatTime(entry.timestamp)}</div>
+                        <div class="hist-expr">${entry.expression
+                            .replace(/\*/g, '×')
+                            .replace(/\//g, '÷')
+                            .replace(/-/g, '−')}</div>
+                        <div class="hist-result">${entry.result}</div>
+                    </div>
+                `).join('');
+
+                // اضافه کردن کلیک به آیتم‌های تاریخچه
+                this.els.histList.querySelectorAll('.history-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const idx = parseInt(item.dataset.index);
+                        const entry = entries[idx];
+                        this.calc.currentOperand = entry.result;
+                        this.calc.expression = '';
+                        this.calc.shouldResetScreen = true;
+                        this.calc.justCalculated = true;
+                        this.updateDisplay();
+                        this.toggleHistory();
+                    });
+                });
+            }
+
+            toggleTheme() {
+                this.currentTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+                this.applyTheme(this.currentTheme);
+                localStorage.setItem('calc_theme', this.currentTheme);
+            }
+
+            applyTheme(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                const icon = this.els.themeToggle.querySelector('i');
+                icon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+            }
+
+            toggleFullscreen() {
+                this.isFullscreen = !this.isFullscreen;
+                this.els.appContainer.classList.toggle('fullscreen', this.isFullscreen);
+                
+                const icon = this.els.fullscreenToggle.querySelector('i');
+                icon.className = this.isFullscreen ? 'fas fa-compress' : 'fas fa-expand';
+            }
+
+            handleKeyboard(e) {
+                const key = e.key;
+                
+                // کلیدهای عددی
+                if (key >= '0' && key <= '9') {
+                    this.handleButton({ dataset: { action: 'number', value: key } });
+                }
+                // عملگرها
+                else if (key === '.') this.handleButton({ dataset: { action: 'decimal' } });
+                else if (key === '+') this.handleButton({ dataset: { action: 'operator', value: '+' } });
+                else if (key === '-') this.handleButton({ dataset: { action: 'operator', value: '-' } });
+                else if (key === '*') this.handleButton({ dataset: { action: 'operator', value: '*' } });
+                else if (key === '/') { 
+                    e.preventDefault(); 
+                    this.handleButton({ dataset: { action: 'operator', value: '/' } }); 
+                }
+                // محاسبه
+                else if (key === 'Enter' || key === '=') { 
+                    e.preventDefault(); 
+                    this.handleButton({ dataset: { action: 'calculate' } }); 
+                }
+                // بازگشت
+                else if (key === 'Backspace') {
+                    this.handleButton({ dataset: { action: 'backspace' } });
+                }
+                // پاک کردن
+                else if (key === 'Escape') {
+                    this.handleButton({ dataset: { action: 'clear' } });
+                }
+                else if (key === 'Delete') {
+                    this.handleButton({ dataset: { action: 'ce' } });
+                }
+                // درصد
+                else if (key === '%') {
+                    this.handleButton({ dataset: { action: 'percent' } });
+                }
+                // میانبرهای پیشرفته
+                else if (e.ctrlKey && key === '2') {
+                    e.preventDefault();
+                    this.handleButton({ dataset: { action: 'square' } });
+                }
+                else if (e.ctrlKey && key === 'q') {
+                    e.preventDefault();
+                    this.handleButton({ dataset: { action: 'sqrt' } });
+                }
+                else if (key === 'r') {
+                    this.handleButton({ dataset: { action: 'inv' } });
+                }
+                else if (key === 'F9') {
+                    e.preventDefault();
+                    this.handleButton({ dataset: { action: 'negate' } });
+                }
+                
+                this.updateDisplay();
+            }
+        }
+
+        // ==========================================
+        // 4. راه‌اندازی اولیه
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculator = new Calculator();
+            const historyManager = new HistoryManager();
+            const ui = new UIManager(calculator, historyManager);
+            
+            ui.renderHistory();
+            ui.updateMemoryIndicator();
+        });
+    </script>
+</body>
+</html>
