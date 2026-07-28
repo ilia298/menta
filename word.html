@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Menta Word - Document1</title>
+<script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browserified.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+--mb:#185abd;--mbd:#103f91;--mbl:#4f8cf7;
+--mg:linear-gradient(135deg,#185abd 0%,#2b6cb0 50%,#4f8cf7 100%);
+--bd:#e1dfdd;--bdd:#c8c6c4;--bg:#f3f2f1;--bgr:#fff;--bgd:#e1dfdd;
+--tx:#323130;--txl:#605e5c;--hv:#f3f2f1;--ac:#edebe9;--sl:#c7e0f4;
+--sh:0 2px 8px rgba(0,0,0,.12);--shl:0 8px 24px rgba(0,0,0,.18);--shx:0 16px 48px rgba(0,0,0,.24);
+--tf:0.15s cubic-bezier(.4,0,.2,1);--tn:0.25s cubic-bezier(.4,0,.2,1);--ts:0.35s cubic-bezier(.4,0,.2,1);
+}
+html,body{height:100%;font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;color:var(--tx);background:var(--bg);overflow:hidden;-webkit-font-smoothing:antialiased}
+body{display:flex;flex-direction:column}
+@keyframes fi{from{opacity:0}to{opacity:1}}
+@keyframes fiu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fid{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes sc{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+@keyframes pu{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes sh{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@keyframes ld{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}
+@keyframes si{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+.titlebar{height:44px;background:var(--mg);color:#fff;display:flex;align-items:center;padding:0 12px;font-size:12px;user-select:none;box-shadow:0 1px 0 rgba(0,0,0,.1);z-index:100}
+.qat{display:flex;gap:2px;margin-left:16px}
+.qat button{background:0 0;border:none;color:#fff;cursor:pointer;padding:6px 8px;border-radius:4px;font-size:14px;transition:all var(--tf);display:flex;align-items:center;justify-content:center;min-width:28px;height:28px}
+.qat button:hover{background:rgba(255,255,255,.15);transform:translateY(-1px)}
+.qat button:active{transform:translateY(0)}
+.qat button svg{width:16px;height:16px}
+.logo-wrap{display:flex;align-items:center;gap:10px;margin-left:20px}
+.logo{width:28px;height:28px;background:#fff;color:var(--mb);display:flex;align-items:center;justify-content:center;font-weight:800;border-radius:4px;font-size:18px;box-shadow:0 1px 3px rgba(0,0,0,.2);position:relative;transition:transform var(--tf)}
+.logo:hover{transform:scale(1.05)}
+.logo::after{content:'';position:absolute;bottom:-2px;right:-2px;width:8px;height:8px;background:#ffc107;border-radius:50%;border:1.5px solid #fff}
+.brand-name{font-size:14px;font-weight:600;letter-spacing:.3px}
+.doc-name{flex:1;text-align:center;font-size:13px;opacity:.95;cursor:pointer;padding:4px 12px;border-radius:4px;transition:all var(--tf)}
+.doc-name:hover{background:rgba(255,255,255,.1);opacity:1}
+.save-status{font-size:11px;background:rgba(255,255,255,.15);padding:4px 12px;border-radius:12px;margin-left:16px;display:flex;align-items:center;gap:6px;transition:all var(--tf)}
+.save-status::before{content:'';width:6px;height:6px;background:#4ade80;border-radius:50%;animation:pu 2s infinite}
+.lang-toggle{background:rgba(255,255,255,.15);border:none;color:#fff;padding:4px 10px;border-radius:12px;cursor:pointer;font-size:11px;margin-left:12px;transition:all var(--tf)}
+.lang-toggle:hover{background:rgba(255,255,255,.25)}
+.search-bar{display:flex;align-items:center;background:rgba(255,255,255,.15);border-radius:16px;padding:4px 12px;margin-left:12px;width:200px;transition:all var(--tn)}
+.search-bar:focus-within{background:rgba(255,255,255,.25);width:260px}
+.search-bar input{background:0 0;border:none;color:#fff;outline:none;font-size:12px;flex:1;font-family:inherit}
+.search-bar input::placeholder{color:rgba(255,255,255,.7)}
+.search-bar svg{width:14px;height:14px;opacity:.8}
+.window-controls{display:flex;gap:0;margin-right:8px}
+.window-controls span{width:46px;height:44px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background var(--tf);font-size:12px}
+.window-controls span:hover{background:rgba(255,255,255,.2)}
+.window-controls span:last-child:hover{background:#e81123}
+
+.ribbon-tabs{display:flex;background:#fff;padding:0 12px;height:36px;align-items:flex-end;gap:0;border-bottom:1px solid var(--bd)}
+.ribbon-tab{padding:8px 16px;color:var(--tx);cursor:pointer;font-size:12.5px;border-radius:4px 4px 0 0;transition:all var(--tf);user-select:none;position:relative;font-weight:500}
+.ribbon-tab:hover{background:var(--hv)}
+.ribbon-tab.active{color:var(--mb);font-weight:600}
+.ribbon-tab.active::after{content:'';position:absolute;bottom:0;right:0;left:0;height:3px;background:var(--mb);border-radius:2px 2px 0 0;animation:si .2s ease}
+
+.ribbon{background:var(--bgr);border-bottom:1px solid var(--bd);padding:6px 12px;display:flex;gap:6px;min-height:96px;overflow-x:auto;align-items:stretch}
+.rc{display:none;gap:6px;width:100%}
+.rc.active{display:flex;animation:fid .2s ease}
+.rg{display:flex;flex-direction:column;padding:2px 10px;border-left:1px solid var(--bd);min-width:max-content}
+.rg:last-child{border-left:none}
+.rgc{display:flex;gap:3px;align-items:center;flex:1}
+.rgl{text-align:center;font-size:11px;color:var(--txl);margin-top:2px;padding-top:2px}
+.rb{background:0 0;border:1px solid transparent;padding:4px 6px;cursor:pointer;border-radius:3px;font-size:13px;color:var(--tx);display:flex;align-items:center;justify-content:center;min-width:26px;height:26px;transition:all var(--tf);font-family:inherit;position:relative}
+.rb:hover{background:var(--hv);border-color:var(--bdd);transform:translateY(-1px)}
+.rb:active{background:var(--ac);transform:translateY(0)}
+.rb.active{background:var(--sl);border-color:#84bfed}
+.rb svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.rb-b{flex-direction:column;height:78px;width:62px;padding:6px 4px;font-size:11px;gap:3px;text-align:center}
+.rb-b svg{width:28px;height:28px}
+select.rs{height:26px;border:1px solid var(--bdd);border-radius:3px;background:#fff;padding:0 6px;font-size:12px;cursor:pointer;font-family:inherit;transition:all var(--tf)}
+select.rs:hover{border-color:var(--mb)}
+select.rs:focus{outline:2px solid var(--mb);outline-offset:-1px}
+#fontFamily{width:150px}
+#fontSize{width:58px}
+.cbtn{position:relative;flex-direction:column}
+.cbtn input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.sep{width:1px;background:var(--bd);margin:0 3px;align-self:stretch}
+
+.ruler{height:22px;background:#faf9f8;border-bottom:1px solid var(--bd);display:flex;justify-content:center;overflow:hidden}
+.ruler-inner{width:816px;height:100%;background-image:repeating-linear-gradient(to left,#a19f9d 0,#a19f9d 1px,transparent 1px,transparent 9.6px),repeating-linear-gradient(to left,#605e5c 0,#605e5c 1px,transparent 1px,transparent 96px);background-size:9.6px 8px,96px 12px;background-position:0 14px,0 10px}
+
+.doc-area{flex:1;overflow:auto;background:var(--bgd);padding:24px 0;display:flex;flex-direction:column;align-items:center;gap:20px}
+.page{width:816px;min-height:1056px;background:#fff;box-shadow:var(--shl);padding:96px;position:relative;color:#000;font-family:Calibri,sans-serif;font-size:11pt;line-height:1.15;outline:none;overflow:visible;transition:transform var(--tn);animation:fiu .3s ease}
+.page:focus{outline:none}
+.page img{max-width:100%;cursor:pointer}
+.page table{border-collapse:collapse;margin:8px 0}
+.page table td,.page table th{border:1px solid #333;padding:4px 8px;min-width:40px;min-height:20px;vertical-align:top}
+.shape{display:inline-block;vertical-align:middle;cursor:move}
+.page h1{color:var(--mb);font-size:22pt;margin:0 0 12px;font-weight:600}
+.page h2{color:var(--mb);font-size:16pt;margin:0 0 10px;font-weight:600}
+.page h3{color:#1f4d78;font-size:13pt;margin:0 0 8px;font-weight:600}
+.page p{margin:0 0 8px}
+.page blockquote{border-right:3px solid var(--bdd);padding-right:12px;color:var(--txl);font-style:italic;margin:8px 0}
+.page pre{font-family:Consolas,monospace;background:#f3f2f1;padding:8px;border-radius:3px;margin:8px 0}
+
+.statusbar{height:26px;background:var(--mb);color:#fff;display:flex;align-items:center;padding:0 16px;font-size:11px;gap:20px}
+.si{cursor:default;display:flex;align-items:center;gap:4px;transition:all var(--tf)}
+.si:hover{background:rgba(255,255,255,.1);padding:2px 6px;border-radius:3px;margin:-2px -6px}
+.spacer{flex:1}
+.vm{display:flex;gap:2px}
+.vm button{background:0 0;border:none;color:#fff;cursor:pointer;padding:4px 6px;border-radius:3px;opacity:.7;transition:all var(--tf)}
+.vm button:hover{opacity:1;background:rgba(255,255,255,.15);transform:scale(1.1)}
+.vm button.active{opacity:1;background:rgba(255,255,255,.2)}
+.vm svg{width:14px;height:14px}
+.zc{display:flex;align-items:center;gap:6px}
+.zc button{background:0 0;color:#fff;border:none;cursor:pointer;font-size:16px;padding:2px 8px;border-radius:3px;transition:all var(--tf)}
+.zc button:hover{background:rgba(255,255,255,.2);transform:scale(1.1)}
+#zoomSlider{width:110px;cursor:pointer}
+
+.fm{position:fixed;top:0;right:0;bottom:0;width:520px;background:var(--mb);color:#fff;z-index:1000;transform:translateX(100%);transition:transform var(--ts);display:flex;flex-direction:column;box-shadow:-4px 0 24px rgba(0,0,0,.2)}
+[dir=ltr] .fm{right:auto;left:0;transform:translateX(-100%)}
+.fm.open{transform:translateX(0)}
+.fm-h{padding:28px 36px;font-size:26px;font-weight:300;border-bottom:1px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:12px}
+.fm-h .logo{width:32px;height:32px;font-size:20px}
+.fm-l{list-style:none;padding:16px 0;flex:1;overflow-y:auto}
+.fm-l li{padding:14px 36px;cursor:pointer;font-size:14px;transition:all var(--tf);display:flex;align-items:center;gap:16px}
+.fm-l li:hover{background:rgba(255,255,255,.1);padding-right:40px}
+.fm-l li .ic{width:28px;height:28px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;transition:all var(--tf)}
+.fm-l li:hover .ic{background:rgba(255,255,255,.25);transform:scale(1.1)}
+.fm-bd{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;display:none;backdrop-filter:blur(2px)}
+.fm-bd.open{display:block;animation:fi .2s}
+
+.mb{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:2000;backdrop-filter:blur(2px)}
+.mb.open{display:flex;animation:fi .2s}
+.mdl{background:#fff;border-radius:8px;min-width:460px;max-width:90%;max-height:90vh;box-shadow:var(--shx);overflow:hidden;animation:sc .25s ease;display:flex;flex-direction:column}
+.mdl-h{padding:16px 20px;background:var(--mb);color:#fff;font-weight:600;display:flex;justify-content:space-between;align-items:center;font-size:15px}
+.mdl-h .cl{cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:all var(--tf)}
+.mdl-h .cl:hover{background:rgba(255,255,255,.2);transform:rotate(90deg)}
+.mdl-b{padding:20px;overflow-y:auto;flex:1}
+.mdl-f{padding:12px 20px;background:#faf9f8;display:flex;justify-content:flex-start;gap:10px;border-top:1px solid var(--bd)}
+.mdl input,.mdl textarea,.mdl select{width:100%;padding:8px 12px;border:1px solid var(--bdd);border-radius:4px;font-size:13px;margin-top:6px;font-family:inherit;transition:all var(--tf)}
+.mdl input:focus,.mdl textarea:focus,.mdl select:focus{outline:none;border-color:var(--mb);box-shadow:0 0 0 2px rgba(24,90,189,.15)}
+.mdl label{font-size:13px;display:block;margin-top:12px;font-weight:500}
+.mbtn{padding:8px 20px;border:1px solid var(--bdd);background:#fff;cursor:pointer;border-radius:4px;font-size:13px;font-family:inherit;transition:all var(--tf);font-weight:500}
+.mbtn:hover{background:var(--hv);transform:translateY(-1px)}
+.mbtn:active{transform:translateY(0)}
+.mbtn.pr{background:var(--mb);color:#fff;border-color:var(--mb)}
+.mbtn.pr:hover{background:var(--mbd)}
+
+.toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%) translateY(20px);background:#323130;color:#fff;padding:12px 24px;border-radius:8px;opacity:0;transition:all var(--tn);z-index:3000;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:10px;font-size:13px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast::before{content:'✓';width:20px;height:20px;background:#4ade80;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+
+.ctx{position:fixed;background:#fff;border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.18);padding:6px 0;min-width:220px;z-index:1500;display:none;font-size:13px;border-radius:6px;animation:sc .15s ease}
+.ctx.open{display:block}
+.ctx div{padding:8px 16px;cursor:pointer;transition:all var(--tf);display:flex;align-items:center;gap:10px}
+.ctx div:hover{background:var(--mb);color:#fff;padding-right:20px}
+.ctx hr{border:none;border-top:1px solid var(--bd);margin:4px 0}
+
+.tg{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;padding:8px}
+.tc{border:2px solid var(--bd);border-radius:8px;overflow:hidden;cursor:pointer;transition:all var(--tn);background:#fff}
+.tc:hover{border-color:var(--mb);transform:translateY(-4px);box-shadow:var(--shl)}
+.tp{height:140px;background:linear-gradient(135deg,#f3f2f1,#e1dfdd);display:flex;align-items:center;justify-content:center;font-size:48px;position:relative;overflow:hidden}
+.tp::before{content:'';position:absolute;inset:0;background:linear-gradient(45deg,transparent 30%,rgba(255,255,255,.3) 50%,transparent 70%);animation:sh 3s infinite}
+.tn{padding:12px;text-align:center;font-size:12px;font-weight:500;border-top:1px solid var(--bd)}
+
+::-webkit-scrollbar{width:16px;height:16px}
+::-webkit-scrollbar-track{background:#f3f2f1}
+::-webkit-scrollbar-thumb{background:#c8c6c4;border:4px solid #f3f2f1;border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:#a19f9d}
+@media(max-width:900px){.page{width:95vw;min-height:auto;padding:48px}.ruler-inner{width:95vw}.rg{padding:2px 4px}.search-bar{display:none}}
+@media print{.titlebar,.ribbon-tabs,.ribbon,.ruler,.statusbar,.fm,.fm-bd{display:none!important}body{background:#fff;overflow:visible}.doc-area{background:#fff;padding:0;overflow:visible}.page{box-shadow:none;margin:0;page-break-after:always;width:100%}}
+
+.splash{position:fixed;inset:0;background:var(--mg);display:flex;align-items:center;justify-content:center;flex-direction:column;z-index:9999;color:#fff;transition:opacity .5s}
+.splash.hide{opacity:0;pointer-events:none}
+.splash-logo{width:80px;height:80px;background:#fff;color:var(--mb);display:flex;align-items:center;justify-content:center;font-weight:800;border-radius:16px;font-size:48px;box-shadow:0 8px 32px rgba(0,0,0,.3);position:relative;animation:pu 1.5s infinite}
+.splash-logo::after{content:'';position:absolute;bottom:-4px;right:-4px;width:16px;height:16px;background:#ffc107;border-radius:50%;border:3px solid #fff}
+.splash-text{margin-top:24px;font-size:28px;font-weight:300;letter-spacing:1px}
+.splash-sub{margin-top:8px;font-size:13px;opacity:.8}
+.splash-loader{margin-top:32px;width:200px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.splash-loader::after{content:'';display:block;width:40%;height:100%;background:#fff;border-radius:2px;animation:ld 1.2s infinite}
+
+.ep{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;padding:32px;border-radius:12px;box-shadow:var(--shx);z-index:4000;display:none;text-align:center;min-width:300px}
+.ep.show{display:block;animation:sc .3s ease}
+.ep h3{margin-bottom:16px;color:var(--mb)}
+.pbar{width:100%;height:8px;background:var(--bd);border-radius:4px;overflow:hidden;margin:16px 0}
+.pfill{height:100%;background:var(--mg);border-radius:4px;transition:width .3s ease;width:0}
+</style>
+</head>
+<body>
+<div class="splash" id="splash"><div class="splash-logo">M</div><div class="splash-text" id="spTxt">Menta Word</div><div class="splash-sub" id="spSub">Advanced Version 2024</div><div class="splash-loader"></div></div>
+<div class="ep" id="ep"><h3 id="epT">Processing...</h3><div class="pbar"><div class="pfill" id="pf"></div></div><p id="epS">Please wait...</p></div>
+
+<div class="titlebar">
+<div class="qat">
+<button id="qSave" onclick="saveNow()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg></button>
+<button id="qUndo" onclick="exec('undo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2L3 13"/></svg></button>
+<button id="qRedo" onclick="exec('redo')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 7v6h-6"/><path d="M3 17a9 9 0 019-9 9 9 0 016 2l3 3"/></svg></button>
+<button id="qPrint" onclick="window.print()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6z"/></svg></button>
+</div>
+<div class="logo-wrap"><div class="logo">M</div><div class="brand-name" id="brandName">Menta Word</div></div>
+<div class="doc-name" id="docTitle" onclick="renameDoc()">Document1</div>
+<div class="save-status" id="saveStatus">Saved</div>
+<button class="lang-toggle" id="langToggle" onclick="toggleLang()">FA</button>
+<div class="search-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg><input type="text" id="globalSearch" placeholder="Search..."></div>
+<div class="window-controls"><span>—</span><span>☐</span><span>✕</span></div>
+</div>
+
+<div class="ribbon-tabs" id="ribbonTabs"></div>
+<div class="ribbon" id="ribbon"></div>
+<div class="ruler" id="ruler"><div class="ruler-inner"></div></div>
+<div class="doc-area" id="docArea"><div class="page" id="page1" contenteditable="true" spellcheck="true"><h1>Welcome to Menta Word</h1><p>Menta Word is a professional document editor designed based on Microsoft Word 2024. Built with HTML, CSS, and pure JavaScript.</p><h2>Key Features</h2><p>Use the ribbon toolbar above to format text, insert tables, images, shapes and more. Your document is <b>automatically saved</b> to your browser.</p><blockquote>Tip: Use Ctrl+S to quickly save your document.</blockquote><p><i>Start typing here...</i></p></div></div>
+
+<div class="statusbar">
+<span class="si" id="pageInfo">Page 1 of 1</span>
+<span class="si" id="wordCount">0 words</span>
+<span class="si" id="charCount">0 chars</span>
+<div class="spacer"></div>
+<div class="vm">
+<button class="active" onclick="setView(this,'print')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18"/></svg></button>
+<button onclick="setView(this,'web')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3v18"/></svg></button>
+</div>
+<div class="zc"><button onclick="zoomBy(-10)">−</button><input type="range" id="zoomSlider" min="50" max="200" value="100"><button onclick="zoomBy(10)">+</button><span id="zoomLabel">100%</span></div>
+</div>
+
+<div class="fm-bd" id="fmBd"></div>
+<div class="fm" id="fm">
+<div class="fm-h"><div class="logo">M</div><span id="fmTitle">File</span></div>
+<ul class="fm-l" id="fmList"></ul>
+</div>
+
+<div class="mb" id="mbBd"><div class="mdl" id="mdl"><div class="mdl-h"><span id="mdlT">Dialog</span><span class="cl" onclick="closeMdl()">✕</span></div><div class="mdl-b" id="mdlB"></div><div class="mdl-f" id="mdlF"></div></div></div>
+<div class="ctx" id="ctx"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== i18n =====
+let lang='en';
+const T={
+en:{file:'File',home:'Home',insert:'Insert',draw:'Draw',design:'Design',layout:'Layout',references:'References',mailings:'Mailings',review:'Review',view:'View',help:'Help',paste:'Paste',cut:'Cut',copy:'Copy',format:'Format',clipboard:'Clipboard',font:'Font',fontLbl:'Font',paragraph:'Paragraph',editing:'Editing',tables:'Tables',illustrations:'Illustrations',headerFooter:'Header & Footer',pages:'Pages',tools:'Tools',themes:'Themes',setup:'Setup',toc:'TOC',create:'Create',reviewLbl:'Review',views:'Views',show:'Show',helpLbl:'Help',table:'Table',picture:'Picture',shapes:'Shapes',icons:'Icons',header:'Header',footer:'Footer',pageNum:'Page #',pageBreak:'Break',link:'Link',symbol:'Symbol',pen:'Pen',highlighter:'Highlighter',eraser:'Eraser',theme:'Theme',pageColor:'Color',pageBorder:'Border',watermark:'Watermark',tocBtn:'TOC',footnote:'Footnote',citation:'Citation',envelope:'Envelope',labels:'Labels',spelling:'Spelling',thesaurus:'Thesaurus',wordCountBtn:'Count',printLayout:'Print',webLayout:'Web',readMode:'Read',ruler:'Ruler',grid:'Grid',helpBtn:'Help',feedback:'Feedback',about:'About',bold:'Bold',italic:'Italic',underline:'Underline',strikethrough:'Strikethrough',subscript:'Subscript',superscript:'Superscript',textColor:'Text Color',highlight:'Highlight',bullets:'Bullets',numbering:'Numbering',decIndent:'Decrease Indent',incIndent:'Increase Indent',alignRight:'Align Right',center:'Center',alignLeft:'Align Left',justify:'Justify',lineSpacing:'Line Spacing',find:'Find',replace:'Replace',save:'Save',saved:'Saved',saving:'Saving...',search:'Search...',docSaved:'Document saved',newDoc:'New Document',openDoc:'Open',openWord:'Open Word (.docx)',openPdf:'Open PDF',saveAs:'Save As',exportDocx:'Export DOCX',exportPdf:'Export PDF',exportHtml:'Export HTML',print:'Print',info:'Info',close:'Close',templates:'Templates',docName:'Document name',rows:'Rows',cols:'Columns',insert:'Insert',cancel:'Cancel',apply:'Apply',delete:'Delete',confirm:'Confirm',notFound:'Not found',replaced:'replaced',exporting:'Exporting...',pleaseWait:'Please wait...',packaging:'Packaging...',rendering:'Rendering...',downloading:'Downloading...',complete:'Complete',docxSuccess:'DOCX file created successfully',pdfSuccess:'PDF file created successfully',htmlSuccess:'HTML file created successfully',exportError:'Export error',newDocConfirm:'Create new document? Unsaved changes will be lost.',newDocMsg:'New document created',templateApplied:'Template applied',docLoaded:'Document loaded',tocCreated:'Table of contents created',footnoteInserted:'Footnote inserted',pageNumAdded:'Page numbers added',heading1:'Heading 1',heading2:'Heading 2',heading3:'Heading 3',normal:'Normal',quote:'Quote',code:'Code',styles:'Styles',margins:'Margins',normalM:'Normal',narrow:'Narrow',wide:'Wide',compact:'Compact',orientation:'Orientation',portrait:'Portrait',landscape:'Landscape',size:'Size',columns:'Columns',one:'One',two:'Two',three:'Three',welcome:'Welcome to Menta Word',keyFeatures:'Key Features',welcomeP1:'Menta Word is a professional document editor designed based on Microsoft Word 2024. Built with HTML, CSS, and pure JavaScript.',welcomeP2:'Use the ribbon toolbar above to format text, insert tables, images, shapes and more. Your document is automatically saved.',tip:'Tip: Use Ctrl+S to quickly save your document.',startTyping:'Start typing here...',fileOpenError:'Error opening file',wordFileOpened:'Word file opened successfully',pdfFileOpened:'PDF file opened successfully',selectFile:'Select a file'},
+fa:{file:'فایل',home:'خانه',insert:'درج',draw:'ترسیم',design:'طراحی',layout:'طرح‌بندی',references:'مراجع',mailings:'نامه‌ها',review:'بازبینی',view:'نما',help:'راهنما',paste:'چسباندن',cut:'برش',copy:'کپی',format:'قالب',clipboard:'کلیپ‌بورد',font:'فونت',fontLbl:'قلم',paragraph:'پاراگراف',editing:'ویرایش',tables:'جداول',illustrations:'تصاویر',headerFooter:'سرصفحه و پاصفحه',pages:'صفحات',tools:'ابزارها',themes:'تم‌ها',setup:'تنظیمات',toc:'فهرست',create:'ایجاد',reviewLbl:'بررسی',views:'نماها',show:'نمایش',helpLbl:'راهنما',table:'جدول',picture:'تصویر',shapes:'اشکال',icons:'آیکون',header:'سرصفحه',footer:'پاصفحه',pageNum:'شماره',pageBreak:'شکست',link:'پیوند',symbol:'نماد',pen:'قلم',highlighter:'برجسته‌کن',eraser:'پاک‌کن',theme:'تم',pageColor:'رنگ',pageBorder:'مرز',watermark:'واترمارک',tocBtn:'فهرست',footnote:'پاورقی',citation:'استناد',envelope:'پاکت',labels:'برچسب',spelling:'املا',thesaurus:'فرهنگ',wordCountBtn:'شمارش',printLayout:'چاپ',webLayout:'وب',readMode:'مطالعه',ruler:'خط‌کش',grid:'شبکه',helpBtn:'راهنما',feedback:'بازخورد',about:'درباره',bold:'پررنگ',italic:'کج',underline:'زیرخط',strikethrough:'خط‌خورده',subscript:'زیرنویس',superscript:'بالانویس',textColor:'رنگ متن',highlight:'برجسته',bullets:'گلوله',numbering:'شماره‌گذاری',decIndent:'کاهش تورفتگی',incIndent:'افزایش تورفتگی',alignRight:'راست‌چین',center:'وسط‌چین',alignLeft:'چپ‌چین',justify:'هم‌تراز',lineSpacing:'فاصله خطوط',find:'یافتن',replace:'جایگزینی',save:'ذخیره',saved:'ذخیره شد',saving:'در حال ذخیره...',search:'جستجو...',docSaved:'سند ذخیره شد',newDoc:'سند جدید',openDoc:'باز کردن',openWord:'باز کردن Word (.docx)',openPdf:'باز کردن PDF',saveAs:'ذخیره با نام',exportDocx:'خروجی DOCX',exportPdf:'خروجی PDF',exportHtml:'خروجی HTML',print:'چاپ',info:'اطلاعات',close:'بستن',templates:'طرح‌های آماده',docName:'نام سند',rows:'ردیف‌ها',cols:'ستون‌ها',insert:'درج',cancel:'لغو',apply:'اعمال',delete:'حذف',confirm:'تأیید',notFound:'یافت نشد',replaced:'مورد جایگزین شد',exporting:'در حال خروجی...',pleaseWait:'لطفاً صبر کنید...',packaging:'بسته‌بندی...',rendering:'رندر...',downloading:'دانلود...',complete:'تکمیل',docxSuccess:'فایل DOCX با موفقیت ایجاد شد',pdfSuccess:'فایل PDF با موفقیت ایجاد شد',htmlSuccess:'فایل HTML با موفقیت ایجاد شد',exportError:'خطا در خروجی',newDocConfirm:'سند جدید ایجاد شود؟ تغییرات ذخیره نشده از بین خواهد رفت.',newDocMsg:'سند جدید ایجاد شد',templateApplied:'طرح اعمال شد',docLoaded:'سند بارگذاری شد',tocCreated:'فهرست مطالب ایجاد شد',footnoteInserted:'پاورقی درج شد',pageNumAdded:'شماره صفحات اضافه شد',heading1:'عنوان ۱',heading2:'عنوان ۲',heading3:'عنوان ۳',normal:'عادی',quote:'نقل قول',code:'کد',styles:'سبک‌ها',margins:'حاشیه‌ها',normalM:'عادی',narrow:'باریک',wide:'پهن',compact:'فشرده',orientation:'جهت',portrait:'عمودی',landscape:'افقی',size:'اندازه',columns:'ستون‌ها',one:'یک',two:'دو',three:'سه',welcome:'به مِنتا ورد خوش آمدید',keyFeatures:'ویژگی‌های کلیدی',welcomeP1:'مِنتا ورد یک ویرایشگر حرفه‌ای اسناد است که با دقت بر اساس Microsoft Word 2024 طراحی شده است.',welcomeP2:'از نوار ابزار بالا برای قالب‌بندی متن، درج جدول، تصویر، شکل و موارد دیگر استفاده کنید. سند شما به صورت خودکار ذخیره می‌شود.',tip:'نکته: برای ذخیره سریع از Ctrl+S استفاده کنید.',startTyping:'شروع به تایپ کنید...',fileOpenError:'خطا در باز کردن فایل',wordFileOpened:'فایل Word با موفقیت باز شد',pdfFileOpened:'فایل PDF با موفقیت باز شد',selectFile:'فایل را انتخاب کنید'}
+};
+function t(k){return T[lang][k]||T.en[k]||k}
+
+// ===== State =====
+const docArea=document.getElementById('docArea');
+const pages=[document.getElementById('page1')];
+let curTab='home',zoom=100,saveTimer;
+
+// ===== Build UI =====
+function buildTabs(){
+const tabs=['file','home','insert','draw','design','layout','references','mailings','review','view','help'];
+const el=document.getElementById('ribbonTabs');
+el.innerHTML='';
+tabs.forEach(tb=>{
+const d=document.createElement('div');
+d.className='ribbon-tab'+(tb===curTab?' active':'');
+d.dataset.tab=tb;
+d.textContent=t(tb);
+d.onclick=()=>{if(tb==='file'){openFM();return}curTab=tb;document.querySelectorAll('.ribbon-tab').forEach(x=>x.classList.remove('active'));d.classList.add('active');buildRibbon()};
+el.appendChild(d)});
+}
+
+function buildRibbon(){
+const R=document.getElementById('ribbon');
+R.innerHTML='';
+const groups=getRibbonGroups(curTab);
+groups.forEach(g=>{
+const gd=document.createElement('div');gd.className='rg';
+const gc=document.createElement('div');gc.className='rgc';
+g.items.forEach(it=>gc.appendChild(it));
+gd.appendChild(gc);
+const gl=document.createElement('div');gl.className='rgl';gl.textContent=g.label;
+gd.appendChild(gl);R.appendChild(gd)});
+}
+
+function mkBtn(icon,label,cls,onclick){
+const b=document.createElement('button');b.className='rb '+(cls||'');b.innerHTML=icon+'<span>'+label+'</span>';
+if(onclick)b.onclick=onclick;return b}
+function mkSmall(icon,label,onclick){
+const b=document.createElement('button');b.className='rb';b.style.cssText='justify-content:flex-start;width:70px;';
+b.innerHTML=icon+' '+label;if(onclick)b.onclick=onclick;return b}
+function mkCmd(cmd,label){
+const b=document.createElement('button');b.className='rb';b.innerHTML=label;
+b.onclick=()=>{exec(cmd);if(['bold','italic','underline','strikeThrough','insertUnorderedList','insertOrderedList','justifyLeft','justifyCenter','justifyRight','justifyFull'].includes(cmd))b.classList.toggle('active',document.queryCommandState(cmd))};return b}
+
+function getRibbonGroups(tab){
+if(tab==='home')return[
+{label:t('clipboard'),items:[mkBtn('<svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="1"/></svg>',t('paste'),'rb-b',()=>{try{navigator.clipboard.readText().then(t=>{document.execCommand('insertText',!1,t)})}catch(e){toast('Ctrl+V')}}),mkSmall('✂',t('cut'),()=>exec('cut')),mkSmall('📋',t('copy'),()=>exec('copy')),mkSmall('🖌',t('format'),()=>toast(t('format')))]},
+{label:t('fontLbl'),items:(()=>{
+const d=document.createElement('div');d.style.cssText='display:flex;flex-direction:column;gap:4px;align-items:flex-start;';
+const fs=document.createElement('select');fs.className='rs';fs.id='fontFamily';fs.style.width='150px';
+['Calibri','Arial','Times New Roman','Georgia','Verdana','Courier New','Tahoma','Impact','Vazirmatn'].forEach(f=>{const o=document.createElement('option');o.textContent=f;fs.appendChild(o)});
+fs.onchange=e=>exec('fontName',e.target.value);
+const sz=document.createElement('select');sz.className='rs';sz.id='fontSize';sz.style.width='58px';
+[8,9,10,11,12,14,16,18,20,24,28,32,36,48,72].forEach(s=>{const o=document.createElement('option');o.textContent=s;if(s===12)o.selected=!0;sz.appendChild(o)});
+sz.onchange=e=>{const m={8:1,9:1,10:2,11:2,12:3,14:3,16:4,18:4,20:5,24:5,28:6,32:6,36:7,48:7,72:7};const idx=m[e.target.value]||3;document.execCommand('fontSize',!1,idx);document.querySelectorAll('font[size="'+idx+'"]').forEach(f=>{f.removeAttribute('size');f.style.fontSize=e.target.value+'px'})};
+d.appendChild(fs);d.appendChild(sz);
+const d2=document.createElement('div');d2.style.cssText='display:flex;flex-direction:column;gap:2px;';
+const r1=document.createElement('div');r1.style.display='flex';r1.style.gap='2px';
+const grow=document.createElement('button');grow.className='rb';grow.textContent='A↑';grow.onclick=()=>chgSize(1);
+const shrink=document.createElement('button');shrink.className='rb';shrink.textContent='A↓';shrink.onclick=()=>chgSize(-1);
+r1.appendChild(grow);r1.appendChild(shrink);
+const r2=document.createElement('div');r2.style.display='flex';r2.style.gap='2px';
+const clr=document.createElement('button');clr.className='rb';clr.textContent='🧹';clr.onclick=()=>exec('clearFormatting');
+const sty=document.createElement('button');sty.className='rb';sty.textContent='Aa▾';sty.onclick=openStyles;
+r2.appendChild(clr);r2.appendChild(sty);
+d2.appendChild(r1);d2.appendChild(r2);
+const wrap=document.createElement('div');wrap.style.cssText='display:flex;gap:6px;align-items:flex-start;';wrap.appendChild(d);wrap.appendChild(d2);return[wrap]})()},
+{label:t('fontLbl'),items:[mkCmd('bold','<b>B</b>'),mkCmd('italic','<i>I</i>'),mkCmd('underline','<u>U</u>'),mkCmd('strikeThrough','<s>ab</s>'),mkCmd('subscript','x₂'),mkCmd('superscript','x²'),mkSep(),mkColor('textColor','#c00000'),mkColor('highlightColor','#ffff00')]},
+{label:t('paragraph'),items:[mkCmd('insertUnorderedList','• ≡'),mkCmd('insertOrderedList','1. ≡'),mkCmd('outdent','⇤'),mkCmd('indent','⇥')]},
+{label:t('paragraph'),items:[mkCmd('justifyRight','≡→'),mkCmd('justifyCenter','≡↔'),mkCmd('justifyLeft','≡←'),mkCmd('justifyFull','≡⇔'),mkSep(),(()=>{const b=document.createElement('button');b.className='rb';b.textContent='↕ 1.15';b.onclick=openLineSpacing;return b})()]},
+{label:t('editing'),items:[(()=>{const b=document.createElement('button');b.className='rb';b.textContent='🔍';b.onclick=()=>openFindReplace(!1);return b})(),(()=>{const b=document.createElement('button');b.className='rb';b.textContent='↔';b.onclick=()=>openFindReplace(!0);return b})()]}
+];
+if(tab==='insert')return[
+{label:t('tables'),items:[mkBtn('<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14"/><path d="M3 10h18M3 15h18M9 5v14M15 5v14"/></svg>',t('table'),'rb-b',openTable)]},
+{label:t('illustrations'),items:[mkBtn('<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="2"/></svg>',t('picture'),'rb-b',insertImage),mkBtn('<svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="4"/><rect x="12" y="12" width="8" height="8"/></svg>',t('shapes'),'rb-b',openShape),mkBtn('<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>',t('icons'),'rb-b',openIcons)]},
+{label:t('headerFooter'),items:[mkBtn('<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 8h18"/></svg>',t('header'),'rb-b',openHeader),mkBtn('<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/><path d="M3 16h18"/></svg>',t('footer'),'rb-b',openFooter),mkBtn('<svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18"/></svg>',t('pageNum'),'rb-b',addPageNums)]},
+{label:t('pages'),items:[mkBtn('<svg viewBox="0 0 24 24"><path d="M3 12h18" stroke-dasharray="2 2"/></svg>',t('pageBreak'),'rb-b',addPage),mkBtn('<svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/></svg>',t('link'),'rb-b',openLink),mkBtn('Ω',t('symbol'),'rb-b',openSymbol)]}
+];
+if(tab==='draw')return[{label:t('tools'),items:[mkBtn('🖊',t('pen'),'rb-b',()=>toast(t('pen'))),mkBtn('🖍',t('highlighter'),'rb-b',()=>toast(t('highlighter'))),mkBtn('🧹',t('eraser'),'rb-b',()=>toast(t('eraser')))]}];
+if(tab==='design')return[{label:t('themes'),items:[mkBtn('🎨',t('theme'),'rb-b',openTheme),mkBtn('🎨',t('pageColor'),'rb-b',openPageColor),mkBtn('▣',t('pageBorder'),'rb-b',openPageBorder),mkBtn('WM',t('watermark'),'rb-b',openWatermark)]}];
+if(tab==='layout'){
+const mg=mkSelect(t('margins'),[['96',t('normalM')],['72',t('narrow')],['144',t('wide')],['48',t('compact')]],e=>{document.querySelectorAll('.page').forEach(p=>p.style.padding=e.target.value+'px');scheduleSave()});
+const or=mkSelect(t('orientation'),[['portrait',t('portrait')],['landscape',t('landscape')]],e=>{document.querySelectorAll('.page').forEach(p=>{if(e.target.value==='landscape'){p.style.width='1056px';p.style.minHeight='816px'}else{p.style.width='816px';p.style.minHeight='1056px'}});scheduleSave()});
+const sz=mkSelect(t('size'),[['letter','Letter'],['a4','A4'],['legal','Legal'],['a3','A3']],e=>{const s={letter:[816,1056],a4:[794,1123],legal:[816,1344],a3:[1123,1587]};const[w,h]=s[e.target.value];document.querySelectorAll('.page').forEach(p=>{p.style.width=w+'px';p.style.minHeight=h+'px'});scheduleSave()});
+const co=mkSelect(t('columns'),[['1',t('one')],['2',t('two')],['3',t('three')]],e=>{document.querySelectorAll('.page').forEach(p=>{p.style.columnCount=e.target.value;p.style.columnGap='20px'});scheduleSave()});
+return[{label:t('setup'),items:[mg,or,sz]},{label:t('setup'),items:[co]}]}
+if(tab==='references')return[{label:t('toc'),items:[mkBtn('📑',t('tocBtn'),'rb-b',insertTOC),mkBtn('¹',t('footnote'),'rb-b',insertFootnote),mkBtn('"',t('citation'),'rb-b',openCitation)]}];
+if(tab==='mailings')return[{label:t('create'),items:[mkBtn('✉',t('envelope'),'rb-b',openEnvelope),mkBtn('🏷',t('labels'),'rb-b',()=>toast(t('labels')))]}];
+if(tab==='review')return[{label:t('reviewLbl'),items:[mkBtn('✓',t('spelling'),'rb-b',()=>toast(t('spelling'))),mkBtn('📖',t('thesaurus'),'rb-b',()=>toast(t('thesaurus'))),mkBtn('123',t('wordCountBtn'),'rb-b',showWordCount)]}];
+if(tab==='view')return[{label:t('views'),items:[mkBtn('📄',t('printLayout'),'rb-b',()=>toast(t('printLayout'))),mkBtn('🌐',t('webLayout'),'rb-b',()=>{document.querySelectorAll('.page').forEach(p=>{p.style.width='100%';p.style.minHeight='auto';p.style.maxWidth='1000px'})}),mkBtn('📖',t('readMode'),'rb-b',()=>toast(t('readMode')))]},{label:t('show'),items:[(()=>{const b=document.createElement('button');b.className='rb';b.textContent='📏';b.onclick=()=>{const r=document.getElementById('ruler');r.style.display=r.style.display==='none'?'flex':'none'};return b})()]}];
+if(tab==='help')return[{label:t('helpLbl'),items:[mkBtn('?',t('helpBtn'),'rb-b',openHelp),mkBtn('💬',t('feedback'),'rb-b',openFeedback),mkBtn('ℹ',t('about'),'rb-b',openAbout)]}];
+return[];
+}
+
+function mkSep(){const s=document.createElement('div');s.className='sep';return s}
+function mkColor(id,def){
+const b=document.createElement('button');b.className='rb cbtn';
+b.innerHTML='<span style="font-weight:700">A</span><div style="width:18px;height:3px;background:'+def+';border-radius:1px;margin-top:1px;"></div>';
+const inp=document.createElement('input');inp.type='color';inp.value=def;
+inp.oninput=e=>{if(id==='textColor')exec('foreColor',e.target.value);else exec('hiliteColor',e.target.value);b.querySelector('div').style.background=e.target.value};
+b.appendChild(inp);return b}
+function mkSelect(label,opts,onchange){
+const w=document.createElement('div');w.style.cssText='display:flex;flex-direction:column;gap:3px;';
+const l=document.createElement('label');l.style.fontSize='11px';l.textContent=label;
+const s=document.createElement('select');s.className='rs';
+opts.forEach(([v,txt])=>{const o=document.createElement('option');o.value=v;o.textContent=txt;s.appendChild(o)});
+s.onchange=onchange;w.appendChild(l);w.appendChild(s);return w}
+
+function chgSize(d){const s=window.getSelection();if(!s.rangeCount)return;const n=s.anchorNode;if(!n)return;let el=n.nodeType===3?n.parentNode:n;const c=parseFloat(getComputedStyle(el).fontSize)||16;const ns=Math.max(8,Math.min(96,c+d*2));document.execCommand('fontSize',!1,'7');document.querySelectorAll('font[size="7"]').forEach(f=>{f.removeAttribute('size');f.style.fontSize=ns+'px'})}
+
+// ===== execCommand =====
+function exec(cmd,val=null){document.execCommand(cmd,!1,val);scheduleSave();updateCounts()}
+
+// ===== Modals =====
+function openMdl(title,body,btns){
+document.getElementById('mdlT').textContent=title;
+document.getElementById('mdlB').innerHTML=body;
+const f=document.getElementById('mdlF');f.innerHTML='';
+btns.forEach(b=>{const btn=document.createElement('button');btn.className='mbtn'+(b.pr?' pr':'');btn.textContent=b.label;btn.onclick=b.action;f.appendChild(btn)});
+const c=document.createElement('button');c.className='mbtn';c.textContent=t('cancel');c.onclick=closeMdl;f.appendChild(c);
+document.getElementById('mbBd').classList.add('open')}
+function closeMdl(){document.getElementById('mbBd').classList.remove('open')}
+
+// ===== File Menu =====
+function openFM(){document.getElementById('fm').classList.add('open');document.getElementById('fmBd').classList.add('open');buildFM()}
+function closeFM(){document.getElementById('fm').classList.remove('open');document.getElementById('fmBd').classList.remove('open')}
+document.getElementById('fmBd').onclick=closeFM;
+
+function buildFM(){
+document.getElementById('fmTitle').textContent=t('file');
+const items=[
+{icon:'📄',label:t('newDoc'),sub:'',act:newDoc},
+{icon:'📋',label:t('templates'),sub:'',act:showTemplates},
+{icon:'📂',label:t('openDoc'),sub:'',act:openDoc},
+{icon:'📝',label:t('openWord'),sub:'',act:openWordFile},
+{icon:'📕',label:t('openPdf'),sub:'',act:openPdfFile},
+{icon:'💾',label:t('save'),sub:'',act:()=>{closeFM();saveNow()}},
+{icon:'💾',label:t('saveAs'),sub:'',act:saveAs},
+{icon:'📝',label:t('exportDocx'),sub:'',act:()=>{closeFM();exportDocx()}},
+{icon:'📕',label:t('exportPdf'),sub:'',act:()=>{closeFM();exportPdf()}},
+{icon:'🌐',label:t('exportHtml'),sub:'',act:()=>{closeFM();exportHtml()}},
+{icon:'🖨',label:t('print'),sub:'',act:()=>{closeFM();window.print()}},
+{icon:'ℹ️',label:t('info'),sub:'',act:showInfo},
+{icon:'✕',label:t('close'),sub:'',act:closeFM}
+];
+const ul=document.getElementById('fmList');ul.innerHTML='';
+items.forEach(it=>{
+const li=document.createElement('li');
+li.innerHTML='<span class="ic">'+it.icon+'</span><div><div>'+it.label+'</div></div>';
+li.onclick=it.act;ul.appendChild(li)})}
+
+// ===== Features =====
+function newDoc(){if(confirm(t('newDocConfirm'))){document.querySelectorAll('.page').forEach((p,i)=>{if(i>0)p.remove()});pages.length=0;pages.push(document.getElementById('page1'));pages[0].innerHTML='<p><br></p>';updatePageInfo();updateCounts();localStorage.removeItem('mentaDoc');closeFM();toast(t('newDocMsg'))}}
+
+function openDoc(){const inp=document.createElement('input');inp.type='file';inp.accept='.html,.htm,.txt';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{pages[0].innerHTML=ev.target.result;closeFM();toast(t('docLoaded'));scheduleSave()};r.readAsText(f)};inp.click()}
+
+// ===== Open Word File =====
+function openWordFile(){
+const inp=document.createElement('input');
+inp.type='file';
+inp.accept='.docx';
+inp.onchange=async e=>{
+const file=e.target.files[0];
+if(!file)return;
+showEP(t('openWord'));
+updateEP(30,t('pleaseWait'));
+try{
+const arrayBuffer=await file.arrayBuffer();
+updateEP(60,t('rendering'));
+const result=await mammoth.convertToHtml({arrayBuffer});
+const html=result.value;
+updateEP(90,t('complete'));
+document.querySelectorAll('.page').forEach((p,i)=>{if(i>0)p.remove()});
+pages.length=0;
+pages.push(document.getElementById('page1'));
+pages[0].innerHTML=html||'<p><br></p>';
+document.getElementById('docTitle').textContent=file.name.replace('.docx','');
+updatePageInfo();
+updateCounts();
+closeFM();
+setTimeout(()=>{hideEP();toast(t('wordFileOpened'))},500);
+scheduleSave();
+}catch(err){
+console.error('Error opening Word file:',err);
+hideEP();
+toast(t('fileOpenError'));
+}
+};
+inp.click();
+}
+
+// ===== Open PDF File =====
+function openPdfFile(){
+const inp=document.createElement('input');
+inp.type='file';
+inp.accept='.pdf';
+inp.onchange=async e=>{
+const file=e.target.files[0];
+if(!file)return;
+showEP(t('openPdf'));
+updateEP(20,t('pleaseWait'));
+try{
+const arrayBuffer=await file.arrayBuffer();
+updateEP(40,t('rendering'));
+const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+let fullText='';
+updateEP(60,'Extracting text...');
+for(let i=1;i<=pdf.numPages;i++){
+const page=await pdf.getPage(i);
+const textContent=await page.getTextContent();
+const pageText=textContent.items.map(item=>item.str).join(' ');
+fullText+=pageText+'\n\n';
+}
+updateEP(90,t('complete'));
+document.querySelectorAll('.page').forEach((p,i)=>{if(i>0)p.remove()});
+pages.length=0;
+pages.push(document.getElementById('page1'));
+const paragraphs=fullText.split('\n\n').filter(p=>p.trim());
+let html='';
+paragraphs.forEach(p=>{
+html+='<p>'+p.trim()+'</p>';
+});
+pages[0].innerHTML=html||'<p><br></p>';
+document.getElementById('docTitle').textContent=file.name.replace('.pdf','');
+updatePageInfo();
+updateCounts();
+closeFM();
+setTimeout(()=>{hideEP();toast(t('pdfFileOpened'))},500);
+scheduleSave();
+}catch(err){
+console.error('Error opening PDF file:',err);
+hideEP();
+toast(t('fileOpenError'));
+}
+};
+inp.click();
+}
+
+function saveAs(){openMdl(t('saveAs'),'<label>'+t('docName')+': <input id="dnInput" value="'+document.getElementById('docTitle').textContent+'"></label>',[{label:t('save'),pr:!0,action:()=>{document.getElementById('docTitle').textContent=document.getElementById('dnInput').value;saveNow();closeMdl();toast(t('docSaved'))}}])}
+
+function showInfo(){let txt='';pages.forEach(p=>txt+=' '+p.innerText);const w=txt.trim().split(/\s+/).filter(x=>x).length;
+openMdl(t('info'),'<div style="display:grid;gap:12px"><div><b>'+t('docName')+':</b> '+document.getElementById('docTitle').textContent+'</div><div><b>Pages:</b> '+pages.length+'</div><div><b>Words:</b> '+w+'</div><div><b>Chars:</b> '+txt.length+'</div></div>',[])}
+
+function openTable(){openMdl(t('table'),'<label>'+t('rows')+': <input type="number" id="tR" value="3" min="1" max="20"></label><label>'+t('cols')+': <input type="number" id="tC" value="3" min="1" max="10"></label>',[{label:t('insert'),pr:!0,action:()=>{const r=+document.getElementById('tR').value,c=+document.getElementById('tC').value;let h='<table><tbody>';for(let i=0;i<r;i++){h+='<tr>';for(let j=0;j<c;j++)h+='<td>&nbsp;</td>';h+='</tr>'}h+='</tbody></table><p><br></p>';document.execCommand('insertHTML',!1,h);closeMdl();scheduleSave()}}])}
+
+function insertImage(){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.execCommand('insertHTML',!1,'<img src="'+ev.target.result+'" style="max-width:100%"><p><br></p>');scheduleSave()};r.readAsDataURL(f)};inp.click()}
+
+function openShape(){openMdl(t('shapes'),'<label>Shape: <select id="shType"><option value="rect">Rectangle</option><option value="circle">Circle</option><option value="triangle">Triangle</option><option value="star">Star</option><option value="arrow">Arrow</option></select></label><label>Color: <input type="color" id="shFill" value="#2b579a"></label><label>Width: <input type="number" id="shW" value="120"></label><label>Height: <input type="number" id="shH" value="120"></label>',[{label:t('insert'),pr:!0,action:()=>{const tp=document.getElementById('shType').value,fl=document.getElementById('shFill').value,w=+document.getElementById('shW').value,h=+document.getElementById('shH').value;let svg='';if(tp==='rect')svg='<rect width="'+w+'" height="'+h+'" fill="'+fl+'"/>';else if(tp==='circle')svg='<ellipse cx="'+w/2+'" cy="'+h/2+'" rx="'+w/2+'" ry="'+h/2+'" fill="'+fl+'"/>';else if(tp==='triangle')svg='<polygon points="'+w/2+',0 '+w+','+h+' 0,'+h+'" fill="'+fl+'"/>';else if(tp==='arrow')svg='<polygon points="0,'+h/3+' '+w*2/3+','+h/3+' '+w*2/3+',0 '+w+','+h/2+' '+w*2/3+','+h+' '+w*2/3+','+h*2/3+' 0,'+h*2/3+'" fill="'+fl+'"/>';else if(tp==='star'){const cx=w/2,cy=h/2,pts=[];for(let i=0;i<10;i++){const r2=i%2===0?Math.min(w,h)/2:Math.min(w,h)/4,a=Math.PI/2+i*Math.PI/5;pts.push((cx+r2*Math.cos(a))+','+(cy-r2*Math.sin(a)))}svg='<polygon points="'+pts.join(' ')+'" fill="'+fl+'"/>'}document.execCommand('insertHTML',!1,'<span class="shape" contenteditable="false"><svg width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg">'+svg+'</svg></span>&nbsp;');closeMdl();scheduleSave()}}])}
+
+function openIcons(){const icons=['😀','🎉','⭐','❤️','🔥','💡','🎯','🚀','✅','❌','⚠️','📌','📎','🔔','📢','💬','📧','📱','💻','🖨'];let h='<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:8px">';icons.forEach(i=>h+='<div class="ip" style="font-size:24px;cursor:pointer;text-align:center;padding:8px;border-radius:4px;transition:background .15s" onmouseover="this.style.background=\'#f3f2f1\'" onmouseout="this.style.background=\'transparent\'">'+i+'</div>');h+='</div>';openMdl(t('icons'),h,[]);document.querySelectorAll('.ip').forEach(el=>{el.onclick=()=>{document.execCommand('insertText',!1,el.textContent);closeMdl();scheduleSave()}})}
+
+function openHeader(){openMdl(t('header'),'<label>'+t('header')+': <input id="hInput" placeholder="Header text"></label>',[{label:t('apply'),pr:!0,action:()=>{const v=document.getElementById('hInput').value;document.querySelectorAll('.page').forEach(p=>{let h=p.querySelector('.pg-hdr');if(!h){h=document.createElement('div');h.className='pg-hdr';h.style.cssText='position:absolute;top:30px;right:96px;left:96px;text-align:center;font-size:10pt;color:#605e5c;border-bottom:1px solid #c8c6c4;padding-bottom:4px';p.insertBefore(h,p.firstChild)}h.textContent=v});closeMdl();scheduleSave()}}])}
+
+function openFooter(){openMdl(t('footer'),'<label>'+t('footer')+': <input id="fInput" placeholder="Footer text"></label>',[{label:t('apply'),pr:!0,action:()=>{const v=document.getElementById('fInput').value;document.querySelectorAll('.page').forEach(p=>{let f=p.querySelector('.pg-ftr');if(!f){f=document.createElement('div');f.className='pg-ftr';f.style.cssText='position:absolute;bottom:30px;right:96px;left:96px;text-align:center;font-size:10pt;color:#605e5c;border-top:1px solid #c8c6c4;padding-top:4px';p.appendChild(f)}f.textContent=v});closeMdl();scheduleSave()}}])}
+
+function addPageNums(){document.querySelectorAll('.page').forEach((p,i)=>{let f=p.querySelector('.pg-ftr');if(!f){f=document.createElement('div');f.className='pg-ftr';f.style.cssText='position:absolute;bottom:30px;right:96px;left:96px;text-align:center;font-size:10pt;color:#605e5c';p.appendChild(f)}f.textContent=(lang==='fa'?'صفحه ':'Page ')+(i+1)});toast(t('pageNumAdded'));scheduleSave()}
+
+function addPage(){const p=document.createElement('div');p.className='page';p.contentEditable='true';p.spellcheck=!0;p.innerHTML='<p><br></p>';attachPage(p);docArea.appendChild(p);pages.push(p);updatePageInfo();p.focus();scheduleSave()}
+
+function openLink(){openMdl(t('link'),'<label>Text: <input id="lkTxt" placeholder="Link text"></label><label>URL: <input id="lkUrl" placeholder="https://..."></label>',[{label:t('insert'),pr:!0,action:()=>{const txt=document.getElementById('lkTxt').value||'Link',url=document.getElementById('lkUrl').value||'#';document.execCommand('insertHTML',!1,'<a href="'+url+'" style="color:#185abd;text-decoration:underline">'+txt+'</a>&nbsp;');closeMdl();scheduleSave()}}])}
+
+function openSymbol(){const syms=['©','®','™','°','±','×','÷','µ','¶','§','†','‡','•','…','‰','€','£','¥','¢','α','β','γ','δ','π','σ','Σ','Ω','∞','√','∫','≈','≠','≤','≥','←','→','↑','↓','↔','⇒'];let h='<div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px">';syms.forEach(s=>h+='<div class="sp" style="font-size:18px;cursor:pointer;text-align:center;padding:8px;border:1px solid #e1e1e1;border-radius:3px;transition:all .15s" onmouseover="this.style.background=\'#f3f2f1\';this.style.borderColor=\'#185abd\'" onmouseout="this.style.background=\'white\';this.style.borderColor=\'#e1e1e1\'">'+s+'</div>');h+='</div>';openMdl(t('symbol'),h,[]);document.querySelectorAll('.sp').forEach(el=>{el.onclick=()=>{document.execCommand('insertText',!1,el.textContent);closeMdl();scheduleSave()}})}
+
+function openLineSpacing(){openMdl(t('lineSpacing'),'<label>Spacing: <select id="spSel"><option value="1">1.0</option><option value="1.15" selected>1.15</option><option value="1.5">1.5</option><option value="2">2.0</option><option value="2.5">2.5</option><option value="3">3.0</option></select></label>',[{label:t('apply'),pr:!0,action:()=>{document.querySelectorAll('.page').forEach(p=>p.style.lineHeight=document.getElementById('spSel').value);closeMdl();scheduleSave()}}])}
+
+function openStyles(){openMdl(t('styles'),'<div style="display:flex;flex-direction:column;gap:6px"><div class="sti" data-s="p" style="font-family:Calibri">'+t('normal')+'</div><div class="sti" data-s="h1" style="font-size:22pt;color:#2b579a">'+t('heading1')+'</div><div class="sti" data-s="h2" style="font-size:16pt;color:#2b579a">'+t('heading2')+'</div><div class="sti" data-s="h3" style="font-size:13pt;color:#1f4d78">'+t('heading3')+'</div><div class="sti" data-s="blockquote" style="border-right:3px solid #c8c6c4;padding-right:12px;color:#605e5c;font-style:italic">'+t('quote')+'</div><div class="sti" data-s="pre" style="font-family:Consolas;background:#f3f2f1;padding:6px">'+t('code')+'</div></div>',[]);document.querySelectorAll('.sti').forEach(s=>{s.style.cursor='pointer';s.style.padding='8px 12px';s.style.borderRadius='4px';s.onmouseover=()=>s.style.background='#f3f2f1';s.onmouseout=()=>s.style.background='transparent';s.onclick=()=>{document.execCommand('formatBlock',!1,s.dataset.s);closeMdl();scheduleSave()}})}
+
+function openTheme(){const themes=[{n:'Blue',p:'#185abd',bg:'#f3f2f1'},{n:'Green',p:'#107c10',bg:'#f1f8e9'},{n:'Purple',p:'#5c2d91',bg:'#f3e5f5'},{n:'Red',p:'#d13438',bg:'#ffebee'},{n:'Orange',p:'#ca5010',bg:'#fff3e0'},{n:'Navy',p:'#003a8c',bg:'#e3f2fd'}];let h='<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">';themes.forEach((th,i)=>{h+='<div class="thp" data-i="'+i+'" style="padding:16px;border:2px solid #e1e1e1;border-radius:6px;cursor:pointer;text-align:center;transition:all .15s"><div style="width:40px;height:40px;background:'+th.p+';border-radius:50%;margin:0 auto 8px"></div><div style="font-size:12px">'+th.n+'</div></div>'});h+='</div>';openMdl(t('theme'),h,[]);document.querySelectorAll('.thp').forEach(el=>{el.onmouseover=()=>el.style.borderColor=themes[el.dataset.i].p;el.onmouseout=()=>el.style.borderColor='#e1e1e1';el.onclick=()=>{document.documentElement.style.setProperty('--mb',themes[el.dataset.i].p);document.documentElement.style.setProperty('--bg',themes[el.dataset.i].bg);closeMdl();toast(t('apply'))}})}
+
+function openPageColor(){openMdl(t('pageColor'),'<label>Color: <input type="color" id="pcInput" value="#ffffff"></label>',[{label:t('apply'),pr:!0,action:()=>{document.querySelectorAll('.page').forEach(p=>p.style.background=document.getElementById('pcInput').value);closeMdl();scheduleSave()}}])}
+
+function openPageBorder(){openMdl(t('pageBorder'),'<label>Width: <input type="number" id="pbW" value="2" min="0" max="10"></label><label>Color: <input type="color" id="pbC" value="#185abd"></label><label>Style: <select id="pbS"><option value="solid">Solid</option><option value="dashed">Dashed</option><option value="dotted">Dotted</option><option value="double">Double</option></select></label>',[{label:t('apply'),pr:!0,action:()=>{document.querySelectorAll('.page').forEach(p=>p.style.border=document.getElementById('pbW').value+'px '+document.getElementById('pbS').value+' '+document.getElementById('pbC').value);closeMdl();scheduleSave()}}])}
+
+function openWatermark(){openMdl(t('watermark'),'<label>Text: <input id="wmTxt" placeholder="CONFIDENTIAL"></label><label>Color: <input type="color" id="wmClr" value="#cccccc"></label><label>Size: <input type="number" id="wmSz" value="72" min="24" max="144"></label>',[{label:t('apply'),pr:!0,action:()=>{const txt=document.getElementById('wmTxt').value,clr=document.getElementById('wmClr').value,sz=document.getElementById('wmSz').value;document.querySelectorAll('.page').forEach(p=>{let wm=p.querySelector('.wm');if(!wm){wm=document.createElement('div');wm.className='wm';wm.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);pointer-events:none;z-index:1';p.appendChild(wm)}wm.textContent=txt;wm.style.color=clr;wm.style.fontSize=sz+'px';wm.style.opacity='.3';wm.style.fontWeight='bold'});closeMdl();scheduleSave()}},{label:t('delete'),action:()=>{document.querySelectorAll('.wm').forEach(w=>w.remove());closeMdl();scheduleSave()}}])}
+
+function insertTOC(){let toc='<h2>'+(lang==='fa'?'فهرست مطالب':'Table of Contents')+'</h2><ul>';document.querySelectorAll('.page h1,.page h2,.page h3').forEach(h=>toc+='<li>'+h.textContent+'</li>');toc+='</ul><p><br></p>';document.execCommand('insertHTML',!1,toc);toast(t('tocCreated'));scheduleSave()}
+function insertFootnote(){document.execCommand('insertHTML',!1,'<sup style="color:#185abd">[1]</sup>');toast(t('footnoteInserted'));scheduleSave()}
+function openCitation(){openMdl(t('citation'),'<label>Author: <input id="ctA"></label><label>Title: <input id="ctT"></label><label>Year: <input id="ctY" type="number"></label>',[{label:t('insert'),pr:!0,action:()=>{document.execCommand('insertHTML',!1,'<p style="font-size:11pt;color:#605e5c;margin-right:20px">'+document.getElementById('ctA').value+' ('+document.getElementById('ctY').value+'). <i>'+document.getElementById('ctT').value+'</i>.</p>');closeMdl();scheduleSave()}}])}
+function openEnvelope(){openMdl(t('envelope'),'<label>To: <input id="envTo"></label><label>Address: <textarea id="envAddr" rows="3"></textarea></label><label>From: <input id="envFrom"></label>',[{label:t('create'),pr:!0,action:()=>{document.execCommand('insertHTML',!1,'<div style="border:2px solid #333;padding:40px;width:500px;height:300px;position:relative;margin:20px auto"><div style="position:absolute;top:20px;right:20px;font-size:10pt">'+document.getElementById('envFrom').value+'</div><div style="position:absolute;bottom:40px;right:40px"><div style="font-weight:bold">'+document.getElementById('envTo').value+'</div><div style="white-space:pre-line">'+document.getElementById('envAddr').value+'</div></div></div><p><br></p>');closeMdl();scheduleSave()}}])}
+
+function showWordCount(){let txt='';pages.forEach(p=>txt+=' '+p.innerText);const w=txt.trim().split(/\s+/).filter(x=>x).length,ch=txt.length,cns=txt.replace(/\s/g,'').length;
+openMdl(t('wordCountBtn'),'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px"><div style="padding:16px;background:#f3f2f1;border-radius:6px;text-align:center"><div style="font-size:24px;font-weight:600;color:#185abd">'+w+'</div><div style="font-size:12px;color:#605e5c">Words</div></div><div style="padding:16px;background:#f3f2f1;border-radius:6px;text-align:center"><div style="font-size:24px;font-weight:600;color:#185abd">'+ch+'</div><div style="font-size:12px;color:#605e5c">Characters</div></div><div style="padding:16px;background:#f3f2f1;border-radius:6px;text-align:center"><div style="font-size:24px;font-weight:600;color:#185abd">'+cns+'</div><div style="font-size:12px;color:#605e5c">No Spaces</div></div><div style="padding:16px;background:#f3f2f1;border-radius:6px;text-align:center"><div style="font-size:24px;font-weight:600;color:#185abd">'+pages.length+'</div><div style="font-size:12px;color:#605e5c">Pages</div></div></div>',[])}
+
+function openHelp(){openMdl(t('helpBtn'),'<h3 style="color:#185abd;margin-bottom:12px">Shortcuts</h3><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px"><div><b>Ctrl+S</b> Save</div><div><b>Ctrl+Z</b> Undo</div><div><b>Ctrl+Y</b> Redo</div><div><b>Ctrl+B</b> Bold</div><div><b>Ctrl+I</b> Italic</div><div><b>Ctrl+U</b> Underline</div><div><b>Ctrl+F</b> Find</div><div><b>Ctrl+H</b> Replace</div><div><b>Ctrl+P</b> Print</div><div><b>Ctrl+A</b> Select All</div></div>',[])}
+function openFeedback(){openMdl(t('feedback'),'<label>Message: <textarea id="fbMsg" rows="4"></textarea></label>',[{label:'Send',pr:!0,action:()=>{closeMdl();toast('Thank you!')}}])}
+function openAbout(){openMdl(t('about'),'<div style="text-align:center;padding:20px"><div class="logo" style="width:64px;height:64px;font-size:36px;margin:0 auto 16px">M</div><h2 style="color:#185abd;margin-bottom:8px">Menta Word</h2><p style="color:#605e5c">Version 2024 - v1.0</p><p style="font-size:12px;color:#605e5c;margin-top:8px">Professional Document Editor<br>Built with HTML, CSS & JavaScript</p><p style="font-size:11px;color:#a19f9d;margin-top:16px">© 2024 Menta Word</p></div>',[])}
+
+// ===== Find / Replace =====
+function openFindReplace(wr){openMdl(wr?t('replace'):t('find'),'<label>'+t('find')+': <input id="findIn" autofocus></label>'+(wr?'<label>'+t('replace')+': <input id="replIn"></label>':'')+'<div style="margin-top:10px;font-size:12px;color:#605e5c"><label><input type="checkbox" id="csChk"> Case sensitive</label></div>',[{label:t('find'),pr:!0,action:findNext},...(wr?[{label:t('replace'),action:replaceOne},{label:'All',action:replaceAll}]:[])])}
+function findNext(){const term=document.getElementById('findIn').value;if(!term)return;if(!window.find(term,document.getElementById('csChk').checked,!1,!0,!1,!0,!1))toast(t('notFound'))}
+function replaceOne(){const term=document.getElementById('findIn').value,rep=document.getElementById('replIn').value,cs=document.getElementById('csChk').checked,sel=window.getSelection();if(sel.toString()===term||(!cs&&sel.toString().toLowerCase()===term.toLowerCase()))document.execCommand('insertText',!1,rep);findNext()}
+function replaceAll(){const term=document.getElementById('findIn').value,rep=document.getElementById('replIn').value,cs=document.getElementById('csChk').checked;let count=0;document.querySelectorAll('.page').forEach(p=>{const rx=new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),cs?'g':'gi');const tmp=document.createElement('div');tmp.innerHTML=p.innerHTML;const w=document.createTreeWalker(tmp,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){const m=n.nodeValue.match(rx);if(m){count+=m.length;n.nodeValue=n.nodeValue.replace(rx,rep)}}p.innerHTML=tmp.innerHTML});toast(count+' '+t('replaced'));scheduleSave()}
+
+// ===== Templates =====
+function showTemplates(){
+const tpl=[
+{n:lang==='fa'?'سند خالی':'Blank',ic:'📄',c:'<p><br></p>'},
+{n:lang==='fa'?'رزومه':'Resume',ic:'👤',c:'<h1 style="text-align:center;color:#185abd">Resume</h1><h2>Personal Info</h2><p><b>Name:</b> [Your Name]<br><b>Email:</b> [Email]<br><b>Phone:</b> [Phone]</p><h2>Education</h2><p>[Degree] - [University] - [Year]</p><h2>Experience</h2><p>[Title] - [Company] - [Year]</p><h2>Skills</h2><ul><li>[Skill 1]</li><li>[Skill 2]</li></ul>'},
+{n:lang==='fa'?'نامه رسمی':'Formal Letter',ic:'📧',c:'<h1 style="text-align:center">Formal Letter</h1><p style="text-align:left">Date: '+new Date().toLocaleDateString()+'</p><p>Dear Sir/Madam,</p><p>[Letter content]</p><p>Sincerely,<br>[Your Name]</p>'},
+{n:lang==='fa'?'گزارش':'Report',ic:'📊',c:'<h1 style="text-align:center;color:#185abd">Report</h1><p style="text-align:center;color:#605e5c">Date: '+new Date().toLocaleDateString()+'</p><h2>Executive Summary</h2><p>[Summary]</p><h2>Introduction</h2><p>[Introduction]</p><h2>Findings</h2><p>[Findings]</p><h2>Conclusion</h2><p>[Conclusion]</p>'},
+{n:lang==='fa'?'فاکتور':'Invoice',ic:'🧾',c:'<h1 style="text-align:center;color:#185abd">Invoice</h1><table style="width:100%;border-collapse:collapse;margin:16px 0"><tr style="background:#f3f2f1"><th style="border:1px solid #333;padding:8px">Description</th><th style="border:1px solid #333;padding:8px">Qty</th><th style="border:1px solid #333;padding:8px">Price</th><th style="border:1px solid #333;padding:8px">Total</th></tr><tr><td style="border:1px solid #333;padding:8px">&nbsp;</td><td style="border:1px solid #333;padding:8px">&nbsp;</td><td style="border:1px solid #333;padding:8px">&nbsp;</td><td style="border:1px solid #333;padding:8px">&nbsp;</td></tr></table><p style="text-align:left"><b>Total:</b> [Amount]</p>'},
+{n:lang==='fa'?'دعوت‌نامه':'Invitation',ic:'💌',c:'<div style="text-align:center;padding:40px;border:3px double #185abd;margin:20px"><h1 style="color:#185abd">Invitation</h1><p style="font-size:16pt;margin:24px 0">You are invited to [Event Name]</p><p><b>Date:</b> [Date]<br><b>Time:</b> [Time]<br><b>Venue:</b> [Venue]</p><p style="margin-top:24px;font-style:italic">We look forward to seeing you</p></div>'}
+];
+let h='<div class="tg">';tpl.forEach((tp,i)=>h+='<div class="tc" data-i="'+i+'"><div class="tp">'+tp.ic+'</div><div class="tn">'+tp.n+'</div></div>');h+='</div>';
+openMdl(t('templates'),h,[]);
+document.querySelectorAll('.tc').forEach(c=>{c.onclick=()=>{if(confirm('Apply template "'+tpl[c.dataset.i].n+'"?')){document.querySelectorAll('.page').forEach((p,j)=>{if(j>0)p.remove()});pages.length=0;pages.push(document.getElementById('page1'));pages[0].innerHTML=tpl[c.dataset.i].c;updatePageInfo();updateCounts();closeMdl();toast(t('templateApplied'));scheduleSave()}}})}
+
+// ===== Exports =====
+function showEP(title){document.getElementById('epT').textContent=title;document.getElementById('epS').textContent=t('pleaseWait');document.getElementById('pf').style.width='0%';document.getElementById('ep').classList.add('show')}
+function updateEP(pct,msg){document.getElementById('pf').style.width=pct+'%';if(msg)document.getElementById('epS').textContent=msg}
+function hideEP(){document.getElementById('ep').classList.remove('show')}
+
+async function exportDocx(){
+showEP(t('exportDocx'));
+try{
+const{Document,Packer,Paragraph,TextRun,HeadingLevel,AlignmentType}=docx;
+const children=[];
+pages.forEach((page,pi)=>{
+const els=page.querySelectorAll('h1,h2,h3,h4,h5,h6,p,li,blockquote,pre');
+els.forEach(el=>{const txt=el.textContent.trim();if(!txt)return;const tag=el.tagName.toLowerCase();let para;if(tag==='h1')para=new Paragraph({text:txt,heading:HeadingLevel.HEADING_1});else if(tag==='h2')para=new Paragraph({text:txt,heading:HeadingLevel.HEADING_2});else if(tag==='h3')para=new Paragraph({text:txt,heading:HeadingLevel.HEADING_3});else if(tag==='li')para=new Paragraph({text:txt,bullet:{level:0}});else para=new Paragraph({text:txt});children.push(para)});
+if(pi<pages.length-1)children.push(new Paragraph({text:'',pageBreakBefore:!0}))});
+const doc=new Document({sections:[{properties:{},children}]});
+updateEP(50,t('packaging'));
+const blob=await Packer.toBlob(doc);
+updateEP(100,t('downloading'));
+saveAs(blob,(document.getElementById('docTitle').textContent||'document')+'.docx');
+setTimeout(()=>{hideEP();toast(t('docxSuccess'))},500);
+}catch(e){console.error(e);hideEP();toast(t('exportError'))}}
+
+function exportPdf(){
+showEP(t('exportPdf'));
+const el=document.getElementById('docArea');
+const opt={margin:0,filename:(document.getElementById('docTitle').textContent||'document')+'.pdf',image:{type:'jpeg',quality:.98},html2canvas:{scale:2,useCORS:!0},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}};
+updateEP(30,t('rendering'));
+html2pdf().from(el).set(opt).save().then(()=>{updateEP(100,t('complete'));setTimeout(()=>{hideEP();toast(t('pdfSuccess'))},500)}).catch(e=>{console.error(e);hideEP();toast(t('exportError'))})}
+
+function exportHtml(){
+showEP(t('exportHtml'));
+const c='<!DOCTYPE html><html lang="'+lang+'" dir="'+(lang==='fa'?'rtl':'ltr')+'"><head><meta charset="UTF-8"><title>'+(document.getElementById('docTitle').textContent||'Document')+'</title><style>body{font-family:Calibri,sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:1.6}h1{color:#185abd}h2{color:#185abd}table{border-collapse:collapse}td,th{border:1px solid #333;padding:4px 8px}</style></head><body>'+pages.map(p=>'<div class="page">'+p.innerHTML+'</div>').join('\n')+'</body></html>';
+updateEP(50,t('downloading'));
+const blob=new Blob([c],{type:'text/html;charset=utf-8'});
+saveAs(blob,(document.getElementById('docTitle').textContent||'document')+'.html');
+updateEP(100,t('complete'));
+setTimeout(()=>{hideEP();toast(t('htmlSuccess'))},500)}
+
+// ===== Context Menu =====
+function buildCtx(){
+const items=[{a:'cut',l:'✂ '+t('cut')},{a:'copy',l:'📋 '+t('copy')},{a:'paste',l:'📄 '+t('paste')},{sep:!0},{a:'bold',l:'B '+t('bold')},{a:'italic',l:'I '+t('italic')},{a:'underline',l:'U '+t('underline')},{sep:!0},{a:'selectAll',l:'✓ Select All'}];
+const ctx=document.getElementById('ctx');ctx.innerHTML='';
+items.forEach(it=>{if(it.sep){const hr=document.createElement('hr');ctx.appendChild(hr)}else{const d=document.createElement('div');d.textContent=it.l;d.onclick=()=>{if(it.a==='cut')exec('cut');else if(it.a==='copy')exec('copy');else if(it.a==='paste'){try{navigator.clipboard.readText().then(t=>document.execCommand('insertText',!1,t))}catch(e){}}else if(['bold','italic','underline'].includes(it.a))exec(it.a);else if(it.a==='selectAll')exec('selectAll');ctx.classList.remove('open')};ctx.appendChild(d)}})}
+
+document.addEventListener('contextmenu',e=>{if(e.target.closest('.page')){e.preventDefault();buildCtx();const ctx=document.getElementById('ctx');ctx.style.left=e.pageX+'px';ctx.style.top=e.pageY+'px';ctx.classList.add('open')}});
+document.addEventListener('click',()=>document.getElementById('ctx').classList.remove('open'));
+
+// ===== Zoom =====
+function applyZoom(){const s=zoom/100;document.querySelectorAll('.page').forEach(p=>{p.style.transform='scale('+s+')';p.style.transformOrigin='top center';p.style.marginBottom=(1056*(s-1))+'px'});document.getElementById('zoomLabel').textContent=zoom+'%';document.getElementById('zoomSlider').value=zoom}
+function zoomBy(d){zoom=Math.max(50,Math.min(200,zoom+d));applyZoom()}
+document.getElementById('zoomSlider').oninput=e=>{zoom=+e.target.value;applyZoom()};
+
+// ===== Counts =====
+function updateCounts(){let txt='';pages.forEach(p=>txt+=' '+p.innerText);const w=txt.trim().split(/\s+/).filter(x=>x).length;document.getElementById('wordCount').textContent=w+' words';document.getElementById('charCount').textContent=txt.length+' chars'}
+function updatePageInfo(){document.getElementById('pageInfo').textContent='Page 1 of '+pages.length}
+
+// ===== Page Events =====
+function attachPage(p){p.addEventListener('input',()=>{updateCounts();scheduleSave()});p.addEventListener('mouseup',updateFmt);p.addEventListener('keyup',updateFmt)}
+function updateFmt(){['bold','italic','underline','strikeThrough'].forEach(cmd=>{const b=document.querySelector('[data-cmd="'+cmd+'"]');if(b)b.classList.toggle('active',document.queryCommandState(cmd))})}
+pages.forEach(attachPage);
+
+// ===== Auto Save =====
+function scheduleSave(){document.getElementById('saveStatus').textContent=t('saving');clearTimeout(saveTimer);saveTimer=setTimeout(saveNow,800)}
+function saveNow(){const data={name:document.getElementById('docTitle').textContent,pages:pages.map(p=>p.innerHTML),zoom,lang};try{localStorage.setItem('mentaDoc',JSON.stringify(data));document.getElementById('saveStatus').textContent=t('saved')}catch(e){document.getElementById('saveStatus').textContent='Error'}}
+function loadDoc(){const raw=localStorage.getItem('mentaDoc');if(!raw)return;try{const d=JSON.parse(raw);if(d.lang)lang=d.lang;if(d.name)document.getElementById('docTitle').textContent=d.name;if(d.pages&&d.pages.length){document.querySelectorAll('.page').forEach((p,i)=>{if(i>0)p.remove()});pages.length=0;pages[0].innerHTML=d.pages[0];pages.push(pages[0]);for(let i=1;i<d.pages.length;i++){const p=document.createElement('div');p.className='page';p.contentEditable='true';p.spellcheck=!0;p.innerHTML=d.pages[i];attachPage(p);docArea.appendChild(p);pages.push(p)}}if(d.zoom){zoom=d.zoom;applyZoom()}updateCounts();updatePageInfo();applyLang()}catch(e){console.error(e)}}
+
+// ===== Language =====
+function toggleLang(){lang=lang==='en'?'fa':'en';document.documentElement.lang=lang;document.documentElement.dir=lang==='fa'?'rtl':'ltr';applyLang();buildTabs();buildRibbon();scheduleSave()}
+function applyLang(){
+document.getElementById('brandName').textContent='Menta Word';
+document.getElementById('langToggle').textContent=lang==='en'?'FA':'EN';
+document.getElementById('globalSearch').placeholder=t('search');
+updateCounts();updatePageInfo()}
+
+// ===== Rename =====
+function renameDoc(){const n=prompt(t('docName')+':',document.getElementById('docTitle').textContent);if(n&&n.trim()){document.getElementById('docTitle').textContent=n.trim();saveNow()}}
+
+// ===== View =====
+function setView(btn,mode){document.querySelectorAll('.vm button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');if(mode==='web')document.querySelectorAll('.page').forEach(p=>{p.style.width='100%';p.style.minHeight='auto';p.style.maxWidth='1000px'});else document.querySelectorAll('.page').forEach(p=>{p.style.width='816px';p.style.minHeight='1056px';p.style.maxWidth=''})}
+
+// ===== Keyboard =====
+document.addEventListener('keydown',e=>{
+if((e.ctrlKey||e.metaKey)&&e.key==='z'&&!e.shiftKey){e.preventDefault();exec('undo')}
+else if((e.ctrlKey||e.metaKey)&&(e.key==='y'||(e.shiftKey&&e.key==='Z'))){e.preventDefault();exec('redo')}
+else if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveNow()}
+else if((e.ctrlKey||e.metaKey)&&e.key==='f'){e.preventDefault();openFindReplace(!1)}
+else if((e.ctrlKey||e.metaKey)&&e.key==='h'){e.preventDefault();openFindReplace(!0)}
+else if((e.ctrlKey||e.metaKey)&&e.key==='p'){e.preventDefault();window.print()}
+});
+
+document.getElementById('globalSearch').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.value)window.find(e.target.value,!1,!1,!0,!1,!0,!1)});
+
+// ===== Toast =====
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2500)}
+
+// ===== Init =====
+window.addEventListener('load',()=>{setTimeout(()=>{document.getElementById('splash').classList.add('hide');setTimeout(()=>{const s=document.getElementById('splash');if(s)s.remove()},500)},1200)});
+buildTabs();buildRibbon();loadDoc();applyZoom();updateCounts();updatePageInfo();
+</script>
+</body>
+</html>
